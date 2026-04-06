@@ -1,3 +1,4 @@
+import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
@@ -8,9 +9,11 @@ export default function App() {
     <div className="bg-[#f5f5f6] text-slate-900">
       <Header />
       <main>
-        <MainPage />
-        <LoginPage />
-        <SignupPage />
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+        </Routes>
       </main>
     </div>
   );
