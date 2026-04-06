@@ -1,4 +1,5 @@
 import TemplateCard from "../components/TemplateCard";
+import { Link } from "react-router-dom";
 
 const templates = [
   {
@@ -39,7 +40,7 @@ export default function MainPage() {
   return (
     <section
       id="main"
-      className="snap-start px-5 pb-14 pt-28 md:px-8 md:pb-20 md:pt-32"
+      className="px-5 pb-14 pt-28 md:px-8 md:pb-20 md:pt-32"
     >
       <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-[1400px] flex-col justify-between">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
@@ -70,12 +71,12 @@ export default function MainPage() {
         </div>
 
         <div className="mt-10 flex justify-center">
-          <a
-            href="#signup"
+          <Link
+            to="/signup"
             className="rounded-2xl bg-slate-950 px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5"
           >
             지금 무료로 시작하기
-          </a>
+          </Link>
         </div>
       </div>
     </section>

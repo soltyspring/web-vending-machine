@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ export default function LoginPage() {
   return (
     <section
       id="login"
-      className="flex min-h-screen snap-start items-center justify-center px-5 py-28 md:px-8"
+      className="flex min-h-screen  items-center justify-center px-5 py-28 md:px-8"
     >
       <div className="w-full max-w-[520px]">
         <div className="mb-6 flex justify-center">
@@ -94,12 +95,12 @@ export default function LoginPage() {
 
           <p className="pt-1 text-center text-sm text-slate-500">
             아직 Web Vending Machine 회원이 아니신가요?{" "}
-            <a
-              href="#signup"
+            <Link
+              to="/signup"
               className="font-semibold text-sky-600 hover:text-sky-700"
             >
               회원가입
-            </a>
+            </Link>
           </p>
         </form>
       </div>
