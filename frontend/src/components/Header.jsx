@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import FreeStartButton from "./FreeStartButton";
 
 const menu = [
   { label: "메인", to: "/" },
@@ -37,12 +38,11 @@ export default function Header() {
           >
             로그인
           </Link>
-          <Link
-            to="/signup"
+          <FreeStartButton
             className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5"
           >
             무료로 시작하기
-          </Link>
+          </FreeStartButton>
         </div>
       </div>
     </header>

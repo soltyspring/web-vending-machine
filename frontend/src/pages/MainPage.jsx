@@ -1,5 +1,7 @@
 import TemplateCard from "../components/TemplateCard";
-import { Link } from "react-router-dom";
+import FreeStartButton, {
+  FreePlanText,
+} from "../components/FreeStartButton";
 
 const templates = [
   {
@@ -70,13 +72,13 @@ export default function MainPage() {
           </div>
         </div>
 
-        <div className="mt-10 flex justify-center">
-          <Link
-            to="/signup"
-            className="rounded-2xl bg-slate-950 px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5"
-          >
-            지금 무료로 시작하기
-          </Link>
+        <div className="mt-10 flex flex-col items-center gap-5">
+          <div className="w-full max-w-[680px] rounded-[28px] border border-slate-200 bg-white/90 p-5 text-center shadow-[0_12px_30px_rgba(15,23,42,0.06)] md:p-6">
+            <FreeStartButton className="w-full rounded-2xl bg-slate-950 px-7 py-4 text-lg font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5">
+              지금 무료로 시작하기
+            </FreeStartButton>
+            <FreePlanText className="mt-4 text-left" />
+          </div>
         </div>
       </div>
     </section>
