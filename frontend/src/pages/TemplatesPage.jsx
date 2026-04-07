@@ -55,7 +55,7 @@ export default function TemplatesPage() {
         </p>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {templates.map((item) => (
+          {templates.slice(0, 1).map((item) => (
             <div key={item.id} className="group">
               {item.available ? (
                 <Link to={`/templates/${item.id}`}>
@@ -142,9 +142,58 @@ export default function TemplatesPage() {
     </div>
     <span className="rounded-full bg-[#dff7e8] px-3 py-1 text-xs font-bold text-[#2f8f57]">
       사용 가능
-    </span>
-  </div>
+            </span>
+          </div>
 </Link>
+
+          {templates.slice(1).map((item) => (
+            <div key={item.id} className="group">
+              {item.available ? (
+                <Link to={`/templates/${item.id}`}>
+                  <div
+                    className={`relative h-[320px] overflow-hidden rounded-[20px] bg-gradient-to-br ${item.theme} p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]`}
+                  >
+                    <div className="flex h-full flex-col justify-between rounded-[16px] border border-white/30 p-5">
+                      <div className={`whitespace-pre-line text-sm font-semibold ${item.accent}`}>
+                        {item.sub}
+                      </div>
+                      <div className="whitespace-pre-line text-2xl font-black leading-[1.1] tracking-[-0.05em] text-slate-900">
+                        {item.heading}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div
+                  className={`relative h-[320px] overflow-hidden rounded-[20px] bg-gradient-to-br ${item.theme} p-5 opacity-50 shadow-[0_20px_60px_rgba(15,23,42,0.08)]`}
+                >
+                  <div className="flex h-full flex-col justify-between rounded-[16px] border border-white/30 p-5">
+                    <div className={`whitespace-pre-line text-sm font-semibold ${item.accent}`}>
+                      {item.sub}
+                    </div>
+                    <div className="whitespace-pre-line text-2xl font-black leading-[1.1] tracking-[-0.05em] text-slate-900">
+                      {item.heading}
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center rounded-[20px] bg-white/60">
+                    <span className="rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white">
+                      준비 중
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-3 flex items-center gap-2 text-lg tracking-[-0.03em]">
+                <span className="font-semibold text-slate-800">{item.title}</span>
+                <span className="text-slate-500">{item.category}</span>
+                {item.available && (
+                  <span className="ml-auto rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                    사용 가능
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
