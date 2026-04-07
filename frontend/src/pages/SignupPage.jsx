@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -149,7 +150,7 @@ export default function SignupPage() {
                   onChange={(e) => update("agreeTerms", e.target.checked)}
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                <span>이용약관 동의</span>
+                <Link to="/terms" className="underline hover:text-slate-900">이용약관 동의</Link>
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
@@ -158,7 +159,7 @@ export default function SignupPage() {
                   onChange={(e) => update("agreePrivacy", e.target.checked)}
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                <span>개인정보 수집 · 이용 동의</span>
+                <Link to="/privacy" className="underline hover:text-slate-900">개인정보 수집 · 이용 동의</Link>
               </label>
             </div>
           </div>
