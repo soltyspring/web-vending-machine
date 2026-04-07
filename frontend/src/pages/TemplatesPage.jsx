@@ -103,6 +103,48 @@ export default function TemplatesPage() {
               </div>
             </div>
           ))}
+
+          <Link to="/templates/wedding" className="group block">
+  <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fff3f7] to-[#f5e6ee] p-5 transition hover:-translate-y-1 hover:shadow-xl">
+    <div className="absolute right-4 top-4 h-14 w-14 rounded-full bg-white/40 blur-sm" />
+
+    <div className="flex h-[280px] flex-col justify-between rounded-[24px] border border-white/50 p-5">
+      <p className="text-sm font-bold text-[#cc8ea7]">Wedding Template</p>
+
+      <div className="flex items-center justify-center">
+        <div className="relative h-40 w-28">
+          <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full bg-white/90" />
+          <div className="absolute left-1/2 top-10 h-10 w-14 -translate-x-1/2 rounded-[20px] bg-white/85" />
+          <div
+            className="absolute left-1/2 top-20 h-20 w-28 -translate-x-1/2 bg-white/90"
+            style={{
+              clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)",
+              borderRadius: "20px",
+            }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[30px] font-black leading-[1.05] tracking-[-0.06em] text-[#5a4650]">
+          당신의 결혼식을
+          <br />
+          빛나게 해드립니다
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div className="mt-4 flex items-center justify-between">
+    <div>
+      <p className="text-[18px] font-black text-[#1d2433]">LUMIÈRE</p>
+      <p className="text-sm font-medium text-[#6f7b91]">스드메 · 웨딩</p>
+    </div>
+    <span className="rounded-full bg-[#dff7e8] px-3 py-1 text-xs font-bold text-[#2f8f57]">
+      사용 가능
+    </span>
+  </div>
+</Link>
         </div>
       </div>
     </section>
