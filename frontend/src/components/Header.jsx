@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 
 const menu = [
   { label: "메인", to: "/" },
-  { label: "로그인", to: "/login" },
-  { label: "회원가입", to: "/signup" },
+  { label: "템플릿", to: "/templates" },
+  
+  //{ label: "회원가입", to: "/signup" },
 ];
 
 export default function Header() {

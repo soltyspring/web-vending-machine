@@ -54,7 +54,7 @@ export default function MainPage() {
 
           <div className="pt-3 lg:justify-self-end lg:max-w-[520px]">
             <p className="text-lg font-semibold leading-[1.25] tracking-[-0.04em] text-slate-500 md:text-[2.75rem]">
-              80+개의 감각적인 템플릿
+              여러개의 감각적인 템플릿
             </p>
             <p className="mt-2 text-lg font-medium leading-[1.25] tracking-[-0.04em] text-slate-500 md:text-[2.4rem]">
               쉽지만 아름다운 웹사이트를 만들어 보세요
