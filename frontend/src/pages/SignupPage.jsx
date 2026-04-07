@@ -111,7 +111,6 @@ export default function SignupPage() {
           </div>
 
           <div className="rounded-3xl bg-slate-50 p-1">
-            
             <button
               type="button"
               className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5"
