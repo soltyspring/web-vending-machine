@@ -60,14 +60,14 @@ export default function SignupPage() {
               type="email"
               value={form.email}
               onChange={(e) => update("email", e.target.value)}
-              placeholder="아이디로 사용할 이메일을 입력해 주세요"
+              placeholder="이메일을 입력해 주세요"
               className="h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
             />
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
-              닉네임
+              아이디
             </label>
             <div className="relative">
               <input
@@ -76,7 +76,7 @@ export default function SignupPage() {
                 onChange={(e) =>
                   e.target.value.length <= 20 && update("nickname", e.target.value)
                 }
-                placeholder="한글, 영문, 숫자, 특수문자 2-20자"
+                placeholder="영문, 숫자, 특수문자 2-20자"
                 className="h-14 w-full rounded-2xl border border-slate-200 px-4 pr-16 outline-none transition focus:border-slate-400"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
@@ -85,15 +85,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={form.useEmailPrefix}
-              onChange={(e) => update("useEmailPrefix", e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300"
-            />
-            <span>이메일 앞자리 사용</span>
-          </label>
+
 
           <div>
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
@@ -118,12 +110,8 @@ export default function SignupPage() {
             />
           </div>
 
-          <div className="rounded-3xl bg-slate-50 p-4">
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <span className="text-sm font-extrabold text-slate-900">
-                본인인증
-              </span>
-            </div>
+          <div className="rounded-3xl bg-slate-50 p-1">
+            
             <button
               type="button"
               className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5"
