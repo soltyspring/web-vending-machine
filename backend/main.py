@@ -10,7 +10,7 @@ from routers.auth import router as auth_router
 import json
 from urllib import request, error
 #>>>>>>> 6b73cd31befab9530c2566be9de07e9d78e48398
-
+#.
 load_dotenv()
 
 app = FastAPI()
