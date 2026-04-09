@@ -5,6 +5,9 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import TemplatesPage from "./pages/TemplatesPage";
+import ShoppingTemplate from "./pages/ShoppingTemplate";
+import WeddingTemplate from "./pages/WeddingTemplate";
 
 export default function App() {
   return (
@@ -17,6 +20,9 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/templates/shopping" element={<ShoppingTemplate />} />
+          <Route path="/templates/wedding" element={<WeddingTemplate />} />
         </Routes>
       </main>
     </div>

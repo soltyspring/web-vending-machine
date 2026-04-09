@@ -5,7 +5,7 @@
 venv/
 __pycache__/
 *.pyc
-
+.codex/
 # Node
 node_modules/
 
