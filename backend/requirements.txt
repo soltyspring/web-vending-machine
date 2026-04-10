@@ -5,4 +5,5 @@ pydantic
 email-validator
 pymysql
 passlib[bcrypt]
+bcrypt==4.0.1
 python-jose
