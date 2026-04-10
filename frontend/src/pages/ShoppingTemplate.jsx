@@ -402,13 +402,13 @@ export default function ShoppingTemplate() {
       {/* ── 템플릿 콘텐츠 ── */}
       <div
         id="template-scroll-container"
-        className="h-[calc(100vh-80px)] overflow-auto pt-14 transition duration-300"
+        className="h-[calc(100vh-80px)] overflow-auto pt-24 transition duration-300"
       >
         <div className={showSetupModal ? "flex min-h-full min-w-[1540px]" : "min-h-full"}>
           <div className={showSetupModal ? "min-w-[1120px] flex-1" : ""}>
 
             {/* ── 쇼핑몰 NAV ── */}
-            <nav className={`sticky top-14 z-40 transition-all duration-300 ${scrolled ? "bg-white/95 shadow-sm backdrop-blur" : "bg-transparent"}`}>
+            <nav className={`sticky top-16 z-40 transition-all duration-300 ${scrolled ? "bg-white/95 shadow-sm backdrop-blur" : "bg-transparent"}`}>
               <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-4 md:px-10">
                 <button
                   onClick={() => {
