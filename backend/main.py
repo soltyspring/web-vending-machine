@@ -3,18 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 import os
-# HEAD
-from openai import OpenAI
 from routers.auth import router as auth_router
-#=======
 import json
 from urllib import request, error
-#>>>>>>> 6b73cd31befab9530c2566be9de07e9d78e48398
-#.
+
 load_dotenv()
 
 app = FastAPI()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,11 +27,7 @@ def root():
 
 @app.get("/health")
 def health():
-#<<<<<<< HEAD
     return {"status": "ok"}
-#=======
-    return {"status": "ok"}
-
 
 class TemplateGenerateRequest(BaseModel):
     templateId: str = Field(default="shopping")
@@ -278,4 +269,3 @@ def _call_openai(payload: TemplateGenerateRequest) -> TemplateGenerateResponse:
 @app.post("/generate-template", response_model=TemplateGenerateResponse)
 def generate_template(payload: TemplateGenerateRequest):
     return _call_openai(payload)
-#>>>>>>> 6b73cd31befab9530c2566be9de07e9d78e48398
