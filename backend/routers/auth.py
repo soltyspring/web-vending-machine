@@ -186,7 +186,16 @@ def register(data: RegisterRequest):
         """
         cursor.execute(insert_sql, (data.username, data.email, hashed_password, 1, "user"))
 
-        return {"message": "회원가입 완료"}
+        access_token = create_access_token({
+            "sub": data.username,
+            "user_no": cursor.lastrowid
+        })
+
+        return {
+            "message": "회원가입 완료",
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
 
     finally:
         conn.close()

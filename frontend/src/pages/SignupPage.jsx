@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function extractErrorMessage(detail, fallback) {
   if (!detail) return fallback;
@@ -18,6 +18,7 @@ function extractErrorMessage(detail, fallback) {
 }
 
 export default function SignupPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     username: "",
@@ -153,7 +154,9 @@ export default function SignupPage() {
         throw new Error(extractErrorMessage(data.detail, "회원가입에 실패했습니다."));
       }
 
-      setSuccessMessage("회원가입이 완료되었습니다.");
+      localStorage.setItem("access_token", data.access_token);
+      setSuccessMessage("회원가입이 완료되었습니다. 자동으로 로그인됩니다.");
+      setTimeout(() => navigate("/"), 500);
     } catch (error) {
       setErrorMessage(error.message || "회원가입에 실패했습니다.");
     } finally {
