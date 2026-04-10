@@ -200,6 +200,50 @@ const uiPresetByMood = {
   },
 };
 
+const normalizeHeroTitle = (title) =>
+  (title || "")
+    .replace(/\n+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const splitHeroTitleLines = (title) => {
+  const normalized = normalizeHeroTitle(title);
+  if (!normalized) return ["스타일"];
+
+  const words = normalized.split(" ");
+  if (words.length === 1) return [normalized];
+
+  const targetLineCount = normalized.length > 16 || words.length > 4 ? 3 : 2;
+  const targetLength = Math.ceil(normalized.replace(/\s/g, "").length / targetLineCount);
+  const lines = [];
+  let currentLine = "";
+  let currentLength = 0;
+
+  words.forEach((word, index) => {
+    const wordLength = word.length;
+    const nextLength = currentLength + wordLength;
+    const shouldBreak =
+      currentLine &&
+      lines.length < targetLineCount - 1 &&
+      nextLength > targetLength;
+
+    if (shouldBreak) {
+      lines.push(currentLine.trim());
+      currentLine = word;
+      currentLength = wordLength;
+    } else {
+      currentLine = currentLine ? `${currentLine} ${word}` : word;
+      currentLength = nextLength;
+    }
+
+    if (index === words.length - 1 && currentLine) {
+      lines.push(currentLine.trim());
+    }
+  });
+
+  return lines.filter(Boolean);
+};
+
 /* ───────── 메인 컴포넌트 ───────── */
 export default function ShoppingTemplate() {
   const [page, setPage] = useState("home");
@@ -239,9 +283,9 @@ export default function ShoppingTemplate() {
   const pageLabels = templateContent.navItems.length === 4
     ? templateContent.navItems
     : defaultTemplateContent.navItems;
-  const heroTitleLines = (templateContent.heroTitle || defaultTemplateContent.heroTitle)
-    .split("\n")
-    .filter(Boolean);
+  const heroTitleLines = splitHeroTitleLines(
+    templateContent.heroTitle || defaultTemplateContent.heroTitle
+  );
   const productGradient = (index) => {
     const pair = ui.featuredGradients[index % ui.featuredGradients.length];
     return `linear-gradient(135deg, ${pair[0]}, ${pair[1]})`;
@@ -358,13 +402,13 @@ export default function ShoppingTemplate() {
       {/* ── 템플릿 콘텐츠 ── */}
       <div
         id="template-scroll-container"
-        className="h-[calc(100vh-80px)] overflow-auto pt-10 transition duration-300"
+        className="h-[calc(100vh-80px)] overflow-auto pt-14 transition duration-300"
       >
         <div className={showSetupModal ? "flex min-h-full min-w-[1540px]" : "min-h-full"}>
           <div className={showSetupModal ? "min-w-[1120px] flex-1" : ""}>
 
             {/* ── 쇼핑몰 NAV ── */}
-            <nav className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-white/95 shadow-sm backdrop-blur" : "bg-transparent"}`}>
+            <nav className={`sticky top-14 z-40 transition-all duration-300 ${scrolled ? "bg-white/95 shadow-sm backdrop-blur" : "bg-transparent"}`}>
               <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-4 md:px-10">
                 <button
                   onClick={() => {

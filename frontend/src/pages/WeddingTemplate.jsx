@@ -147,10 +147,10 @@ export default function WeddingTemplate() {
 
       <div
         id="template-scroll-container"
-        className="h-[calc(100vh-80px)] overflow-y-auto pt-10"
+        className="h-[calc(100vh-80px)] overflow-y-auto pt-14"
       >
         <nav
-          className={`sticky top-0 z-40 transition-all duration-300 ${
+          className={`sticky top-14 z-40 transition-all duration-300 ${
             scrolled ? "bg-white/95 shadow-sm backdrop-blur" : "bg-transparent"
           }`}
         >
