@@ -10,7 +10,6 @@ from passlib.context import CryptContext #비번 암호화 검증
 from jose import jwt # <<< jwt 토큰 만들기
 from datetime import datetime, timedelta, timezone #토큰 만료 시간
 from pathlib import Path
-from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env") #.env 파일 불러오기 os.getenv("~~~~")코드를 위한
@@ -57,11 +56,21 @@ def get_connection():
     )
     return conn
 
+def validate_password_length(password: str):
+    if len(password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="비밀번호는 72바이트 이하로 입력해 주세요.")
+
 def hash_password(password: str) -> str:
+    validate_password_length(password)
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    validate_password_length(plain_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="비밀번호 형식이 올바르지 않습니다.")
+
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -76,16 +85,17 @@ def login(data: LoginRequest):
 
         # 1. 이메일로 사용자 조회
         sql = "SELECT * FROM users WHERE email = %s"
+        print(f"Executing SQL: {sql} with email={data.email}")
         cursor.execute(sql, (data.email,))
         user = cursor.fetchone()
 
         # 2. 사용자가 없으면 실패
         if not user:
-            raise HTTPException(status_code=400, detail="이메일 또는 비밀번호가 틀립니다.")
+            raise HTTPException(status_code=400, detail="이메일이 존재하지 않습니다.")
 
         # 3. 비밀번호가 틀리면 실패
         if not verify_password(data.password, user["password_hash"]):
-            raise HTTPException(status_code=400, detail="이메일 또는 비밀번호가 틀립니다.")
+            raise HTTPException(status_code=400, detail="비밀번호가 틀립니다.")
 
         # 4. JWT 토큰 생성
         access_token = create_access_token({
