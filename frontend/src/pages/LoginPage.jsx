@@ -1,20 +1,62 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+function extractErrorMessage(detail, fallback) {
+  if (!detail) return fallback;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const firstMessage = detail.find(
+      (item) => item && typeof item === "object" && typeof item.msg === "string"
+    );
+    if (firstMessage) return firstMessage.msg;
+    return fallback;
+  }
+  if (typeof detail === "object" && typeof detail.msg === "string") {
+    return detail.msg;
+  }
+  return fallback;
+}
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [keepLogin, setKeepLogin] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: 백엔드 API 연결
-    // const res = await fetch("/api/auth/login", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ email, password }),
-    // });
-    console.log("로그인 시도:", { email, password, keepLogin });
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(extractErrorMessage(data.detail, "로그인에 실패했습니다."));
+      }
+
+      if (keepLogin) {
+        localStorage.setItem("access_token", data.access_token);
+      } else {
+        sessionStorage.setItem("access_token", data.access_token);
+      }
+
+      setSuccessMessage("로그인에 성공했습니다.");
+      setTimeout(() => navigate("/"), 500);
+    } catch (error) {
+      setErrorMessage(error.message || "로그인에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -44,13 +86,13 @@ export default function LoginPage() {
         >
           <div>
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
-              이메일
+              아이디
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@yourbrand.com"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="아이디를 입력해 주세요"
               className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none transition focus:border-slate-400"
             />
           </div>
@@ -86,11 +128,24 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {errorMessage ? (
+            <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+              {errorMessage}
+            </p>
+          ) : null}
+
+          {successMessage ? (
+            <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+              {successMessage}
+            </p>
+          ) : null}
+
           <button
             type="submit"
-            className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5"
+            disabled={isSubmitting}
+            className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
           >
-            로그인
+            {isSubmitting ? "로그인 중..." : "로그인"}
           </button>
 
           <p className="pt-1 text-center text-sm text-slate-500">

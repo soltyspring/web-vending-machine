@@ -27,12 +27,12 @@ class VerifyEmailRequest(BaseModel):
     code: str
 
 class RegisterRequest(BaseModel):
+    username: str
     email: EmailStr
     password: str
-    name: str
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username: str
     password: str
 
 email_codes = {} #이메일 인증코드 저장
@@ -83,15 +83,15 @@ def login(data: LoginRequest):
     try:
         cursor = conn.cursor()
 
-        # 1. 이메일로 사용자 조회
-        sql = "SELECT * FROM users WHERE email = %s"
-        print(f"Executing SQL: {sql} with email={data.email}")
-        cursor.execute(sql, (data.email,))
+        # 1. 아이디(username)로 사용자 조회
+        sql = "SELECT * FROM users WHERE username = %s"
+        print(f"Executing SQL: {sql} with username={data.username}")
+        cursor.execute(sql, (data.username,))
         user = cursor.fetchone()
 
         # 2. 사용자가 없으면 실패
         if not user:
-            raise HTTPException(status_code=400, detail="이메일이 존재하지 않습니다.")
+            raise HTTPException(status_code=400, detail="아이디가 존재하지 않습니다.")
 
         # 3. 비밀번호가 틀리면 실패
         if not verify_password(data.password, user["password_hash"]):
@@ -99,8 +99,8 @@ def login(data: LoginRequest):
 
         # 4. JWT 토큰 생성
         access_token = create_access_token({
-            "sub": user["email"],
-            "user_id": user["id"]
+            "sub": user["username"],
+            "user_no": user["user_no"]
         })
 
         # 5. 응답 반환
@@ -139,7 +139,7 @@ def check_email(email: str = Query(...)):
     try:
         cursor = conn.cursor()
 
-        sql = "SELECT id FROM users WHERE email = %s"
+        sql = "SELECT user_no FROM users WHERE email = %s"
         cursor.execute(sql, (email,))
         user = cursor.fetchone()
 
@@ -160,23 +160,31 @@ def register(data: RegisterRequest):
     try:
         cursor = conn.cursor()
 
-        # 1. 이메일 중복 확인
-        check_sql = "SELECT id FROM users WHERE email = %s"
+        # 1. 아이디 중복 확인
+        check_username_sql = "SELECT user_no FROM users WHERE username = %s"
+        cursor.execute(check_username_sql, (data.username,))
+        existing_username = cursor.fetchone()
+
+        if existing_username:
+            raise HTTPException(status_code=400, detail="이미 사용 중인 아이디입니다.")
+
+        # 2. 이메일 중복 확인
+        check_sql = "SELECT user_no FROM users WHERE email = %s"
         cursor.execute(check_sql, (data.email,))
         existing_user = cursor.fetchone()
 
         if existing_user:
             raise HTTPException(status_code=400, detail="이미 가입된 이메일입니다.")
 
-        # 2. 비밀번호 암호화
+        # 3. 비밀번호 암호화
         hashed_password = hash_password(data.password)
 
-        # 3. 회원 저장
+        # 4. 회원 저장
         insert_sql = """
-            INSERT INTO users (email, password_hash, name, email_verified, role, created_at, updated_at)
+            INSERT INTO users (username, email, password_hash, email_verified, role, created_at, updated_at)
             VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
         """
-        cursor.execute(insert_sql, (data.email, hashed_password, data.name, 1, "user"))
+        cursor.execute(insert_sql, (data.username, data.email, hashed_password, 1, "user"))
 
         return {"message": "회원가입 완료"}
 
