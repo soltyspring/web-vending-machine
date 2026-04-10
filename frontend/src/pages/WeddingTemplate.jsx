@@ -133,24 +133,24 @@ export default function WeddingTemplate() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#fffafb] text-[#4f3e47]">
-      <div className="fixed inset-x-0 top-20 z-50 flex items-center justify-center gap-3 border-b border-[#f0e5ea] bg-white/95 px-4 py-2 backdrop-blur">
-        <span className="text-xs font-semibold text-[#9d8a95]">스드메 템플릿 미리보기</span>
-        <span className="text-[#d8c8cf]">·</span>
-        <Link
-          to="/templates"
-          className="text-xs font-bold text-[#6d5963] underline underline-offset-2 hover:text-[#4f3e47]"
-        >
-          목록으로
-        </Link>
-      </div>
-
+    <div className="min-h-screen bg-[#fffafb] pt-20 text-[#4f3e47]">
       <div
         id="template-scroll-container"
-        className="h-[calc(100vh-80px)] overflow-y-auto pt-24"
+        className="h-[calc(100vh-80px)] overflow-y-auto"
       >
+        <div className="sticky top-0 z-50 flex items-center justify-center gap-3 border-b border-[#f0e5ea] bg-white/95 px-4 py-2 backdrop-blur">
+          <span className="text-xs font-semibold text-[#9d8a95]">스드메 템플릿 미리보기</span>
+          <span className="text-[#d8c8cf]">·</span>
+          <Link
+            to="/templates"
+            className="text-xs font-bold text-[#6d5963] underline underline-offset-2 hover:text-[#4f3e47]"
+          >
+            목록으로
+          </Link>
+        </div>
+
         <nav
-          className={`sticky top-16 z-40 transition-all duration-300 ${
+          className={`sticky top-[37px] z-40 transition-all duration-300 ${
             scrolled ? "bg-white/95 shadow-sm backdrop-blur" : "bg-transparent"
           }`}
         >
