@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const freePlanNotes = [
   "기본 5회까지 무료 생성이 가능합니다.",
-  "무료 생성 후에는 편집기, 관리자 페이지, 호스팅 기능을 이용할 수 없습니다.",
+  "무료 생성 후에는 편집 기능이 제공되지 않으며, 관리자 페이지와 호스팅 기능은 유료로 이용할 수 있습니다.",
 ];
 
 export function FreePlanNotice({ className = "" }) {
