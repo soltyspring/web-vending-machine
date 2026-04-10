@@ -9,8 +9,12 @@ from dotenv import load_dotenv #.env 파일 로드
 from passlib.context import CryptContext #비번 암호화 검증
 from jose import jwt # <<< jwt 토큰 만들기
 from datetime import datetime, timedelta, timezone #토큰 만료 시간
+from pathlib import Path
+from dotenv import load_dotenv
 
-load_dotenv() #.env 파일 불러오기 os.getenv("~~~~")코드를 위한
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env") #.env 파일 불러오기 os.getenv("~~~~")코드를 위한
+
 
 router = APIRouter(prefix="/api/auth", tags=["auth"]) # 이 파일 안의 모든 api 앞에 /api/auth 붙임
 # router.post("/login") << /api/auth/login이 된다.
