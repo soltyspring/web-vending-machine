@@ -1,24 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-function extractErrorMessage(detail, fallback) {
-  if (!detail) return fallback;
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) {
-    const firstMessage = detail.find(
-      (item) => item && typeof item === "object" && typeof item.msg === "string"
-    );
-    if (firstMessage) return firstMessage.msg;
-    return fallback;
-  }
-  if (typeof detail === "object" && typeof detail.msg === "string") {
-    return detail.msg;
-  }
-  return fallback;
-}
+import { useAuth } from "../context/AuthContext";
+import { createApiUrl, extractErrorMessage, parseJsonResponse } from "../lib/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [keepLogin, setKeepLogin] = useState(false);
@@ -26,32 +13,28 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/auth/login", {
+      const response = await fetch(createApiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(extractErrorMessage(data.detail, "로그인에 실패했습니다."));
+      const payload = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(extractErrorMessage(payload, "로그인에 실패했습니다."));
       }
 
-      if (keepLogin) {
-        localStorage.setItem("access_token", data.access_token);
-      } else {
-        sessionStorage.setItem("access_token", data.access_token);
-      }
-
+      login(payload.access_token, keepLogin);
       setSuccessMessage("로그인에 성공했습니다.");
-      setTimeout(() => navigate("/"), 500);
+      window.setTimeout(() => navigate("/"), 500);
     } catch (error) {
       setErrorMessage(error.message || "로그인에 실패했습니다.");
     } finally {
@@ -62,7 +45,7 @@ export default function LoginPage() {
   return (
     <section
       id="login"
-      className="flex min-h-screen  items-center justify-center px-5 py-28 md:px-8"
+      className="flex min-h-screen items-center justify-center px-5 py-28 md:px-8"
     >
       <div className="w-full max-w-[520px]">
         <div className="mb-6 flex justify-center">
@@ -91,7 +74,7 @@ export default function LoginPage() {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(event) => setUsername(event.target.value)}
               placeholder="아이디를 입력해 주세요"
               className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none transition focus:border-slate-400"
             />
@@ -104,7 +87,7 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               placeholder="비밀번호를 입력해 주세요"
               className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-base outline-none transition focus:border-slate-400"
             />
@@ -115,7 +98,7 @@ export default function LoginPage() {
               <input
                 type="checkbox"
                 checked={keepLogin}
-                onChange={(e) => setKeepLogin(e.target.checked)}
+                onChange={(event) => setKeepLogin(event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300"
               />
               <span>로그인 유지</span>
@@ -124,7 +107,7 @@ export default function LoginPage() {
               type="button"
               className="font-semibold text-slate-600 hover:text-slate-900"
             >
-              아이디 · 비밀번호 찾기
+              아이디·비밀번호 찾기
             </button>
           </div>
 

@@ -1,14 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import FreeStartButton from "./FreeStartButton";
+import { useAuth } from "../context/AuthContext";
 
 const menu = [
   { label: "메인", to: "/" },
   { label: "템플릿", to: "/templates" },
-  
-  //{ label: "회원가입", to: "/signup" },
 ];
 
 export default function Header() {
+  const navigate = useNavigate();
+  const { isLoggedIn, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-[#f5f5f6]/90 backdrop-blur">
       <div className="mx-auto flex h-20 w-full max-w-[1400px] items-center justify-between px-5 md:px-8">
@@ -32,17 +39,35 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5"
-          >
-            로그인
-          </Link>
-          <FreeStartButton
-            className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5"
-          >
-            무료로 시작하기
-          </FreeStartButton>
+          {isLoggedIn ? (
+            <>
+              <Link
+                to="/templates"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5"
+              >
+                마이페이지
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5"
+              >
+                로그인
+              </Link>
+              <FreeStartButton className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5">
+                무료로 시작하기
+              </FreeStartButton>
+            </>
+          )}
         </div>
       </div>
     </header>

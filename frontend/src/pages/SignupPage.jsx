@@ -1,24 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { createApiUrl, extractErrorMessage, parseJsonResponse } from "../lib/api";
 
-function extractErrorMessage(detail, fallback) {
-  if (!detail) return fallback;
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) {
-    const firstMessage = detail.find(
-      (item) => item && typeof item === "object" && typeof item.msg === "string"
-    );
-    if (firstMessage) return firstMessage.msg;
-    return fallback;
-  }
-  if (typeof detail === "object" && typeof detail.msg === "string") {
-    return detail.msg;
-  }
-  return fallback;
+const EMAIL_CODE_EXPIRE_SECONDS = 180;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const usernamePattern = /^[A-Za-z0-9_]{2,20}$/;
+const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,20}$/;
+
+function formatTimer(seconds) {
+  const safeSeconds = Math.max(seconds, 0);
+  const minutes = String(Math.floor(safeSeconds / 60)).padStart(2, "0");
+  const remainSeconds = String(safeSeconds % 60).padStart(2, "0");
+
+  return `${minutes}:${remainSeconds}`;
+}
+
+function getUsernameMessage(status) {
+  if (status === "available") return "사용 가능한 아이디입니다.";
+  if (status === "unavailable") return "이미 사용 중인 아이디입니다.";
+  if (status === "error") return "아이디 확인 중 문제가 발생했습니다.";
+  return "";
 }
 
 export default function SignupPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({
     email: "",
     username: "",
@@ -29,60 +36,175 @@ export default function SignupPage() {
     agreeTerms: false,
     agreePrivacy: false,
   });
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailStatus, setEmailStatus] = useState({
+    sent: false,
+    verified: false,
+    expiresIn: 0,
+  });
+  const [usernameCheck, setUsernameCheck] = useState({
+    status: "idle",
+    value: "",
+  });
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const isEmailValid = emailPattern.test(form.email);
+  const isUsernameValid = usernamePattern.test(form.username);
+  const isPasswordValid = passwordPattern.test(form.password);
+  const isPasswordConfirmMatched =
+    form.passwordConfirm.length > 0 && form.password === form.passwordConfirm;
+  const isUsernameChecked =
+    usernameCheck.status === "available" && usernameCheck.value === form.username;
+
+  useEffect(() => {
+    if (!emailStatus.sent || emailStatus.verified || emailStatus.expiresIn <= 0) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setEmailStatus((prev) => {
+        if (prev.verified || prev.expiresIn <= 1) {
+          window.clearInterval(timer);
+          return { ...prev, expiresIn: 0 };
+        }
+
+        return { ...prev, expiresIn: prev.expiresIn - 1 };
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [emailStatus.expiresIn, emailStatus.sent, emailStatus.verified]);
+
   const update = (key, value) => {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
-      // 전체 동의 처리
+
       if (key === "agreeAll") {
         next.agreeTerms = value;
         next.agreePrivacy = value;
       } else if (key === "agreeTerms" || key === "agreePrivacy") {
         next.agreeAll = next.agreeTerms && next.agreePrivacy;
       }
+
       return next;
     });
+
+    if (key === "email" && !emailStatus.verified) {
+      setEmailStatus({ sent: false, verified: false, expiresIn: 0 });
+      setSuccessMessage("");
+    }
+
+    if (key === "verificationCode") {
+      setErrorMessage("");
+    }
+
+    if (key === "username") {
+      setUsernameCheck({ status: "idle", value: "" });
+      setSuccessMessage("");
+    }
+  };
+
+  const handleCheckUsername = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!form.username) {
+      setErrorMessage("아이디를 입력해 주세요.");
+      return;
+    }
+
+    if (!isUsernameValid) {
+      setErrorMessage("아이디는 영문, 숫자, 밑줄만 사용해 2~20자로 입력해 주세요.");
+      return;
+    }
+
+    setIsCheckingUsername(true);
+
+    try {
+      const response = await fetch(
+        createApiUrl(
+          `/api/auth/check-username?username=${encodeURIComponent(form.username)}`
+        )
+      );
+      const payload = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          extractErrorMessage(payload, "아이디 중복 확인에 실패했습니다.")
+        );
+      }
+
+      setUsernameCheck({
+        status: payload.available ? "available" : "unavailable",
+        value: form.username,
+      });
+    } catch (error) {
+      setUsernameCheck({ status: "error", value: form.username });
+      setErrorMessage(error.message || "아이디 중복 확인에 실패했습니다.");
+    } finally {
+      setIsCheckingUsername(false);
+    }
   };
 
   const handleSendEmail = async () => {
     setErrorMessage("");
     setSuccessMessage("");
+
+    if (!form.email) {
+      setErrorMessage("이메일을 입력해 주세요.");
+      return;
+    }
+
+    if (!isEmailValid) {
+      setErrorMessage("올바른 이메일 형식으로 입력해 주세요.");
+      return;
+    }
+
     setIsSendingEmail(true);
 
     try {
-      const checkRes = await fetch(`http://127.0.0.1:8000/api/auth/check-email?email=${encodeURIComponent(form.email)}`);
-      const checkData = await checkRes.json();
-      if (!checkRes.ok) {
-        throw new Error(extractErrorMessage(checkData.detail, "이메일 확인에 실패했습니다."));
+      const checkResponse = await fetch(
+        createApiUrl(`/api/auth/check-email?email=${encodeURIComponent(form.email)}`)
+      );
+      const checkPayload = await parseJsonResponse(checkResponse);
+
+      if (!checkResponse.ok) {
+        throw new Error(
+          extractErrorMessage(checkPayload, "이메일 중복 확인에 실패했습니다.")
+        );
       }
-      if (!checkData.available) {
+
+      if (!checkPayload.available) {
         throw new Error("이미 가입된 이메일입니다.");
       }
 
-      const res = await fetch("http://127.0.0.1:8000/api/auth/send-email", {
+      const sendResponse = await fetch(createApiUrl("/api/auth/send-email"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.email }),
       });
-      const data = await res.json();
-      if (!res.ok) {
+      const sendPayload = await parseJsonResponse(sendResponse);
+
+      if (!sendResponse.ok) {
         throw new Error(
-          extractErrorMessage(data.detail, "이메일 인증 발송에 실패했습니다.")
+          extractErrorMessage(sendPayload, "인증 코드를 보내지 못했습니다.")
         );
       }
 
-      setEmailSent(true);
-      setEmailVerified(false);
-      setSuccessMessage("인증 코드가 발송되었습니다. 터미널에서 코드를 확인해 입력해 주세요.");
+      setEmailStatus({
+        sent: true,
+        verified: false,
+        expiresIn: EMAIL_CODE_EXPIRE_SECONDS,
+      });
+      setSuccessMessage(
+        sendPayload.message || "인증 코드가 발송되었습니다. 메일함을 확인해 주세요."
+      );
     } catch (error) {
-      setErrorMessage(error.message || "이메일 인증 발송에 실패했습니다.");
+      setErrorMessage(error.message || "인증 코드를 보내지 못했습니다.");
     } finally {
       setIsSendingEmail(false);
     }
@@ -91,10 +213,26 @@ export default function SignupPage() {
   const handleVerifyEmail = async () => {
     setErrorMessage("");
     setSuccessMessage("");
+
+    if (!emailStatus.sent) {
+      setErrorMessage("먼저 이메일 인증 코드를 발송해 주세요.");
+      return;
+    }
+
+    if (!form.verificationCode) {
+      setErrorMessage("인증 코드를 입력해 주세요.");
+      return;
+    }
+
+    if (emailStatus.expiresIn <= 0) {
+      setErrorMessage("인증코드가 만료되었습니다. 재전송 후 다시 시도해 주세요.");
+      return;
+    }
+
     setIsVerifyingEmail(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/auth/verify-email", {
+      const response = await fetch(createApiUrl("/api/auth/verify-email"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -102,44 +240,75 @@ export default function SignupPage() {
           code: form.verificationCode,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(extractErrorMessage(data.detail, "이메일 인증에 실패했습니다."));
+      const payload = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          extractErrorMessage(payload, "인증코드가 일치하지 않거나 만료되었습니다.")
+        );
       }
 
-      setEmailVerified(true);
-      setSuccessMessage("이메일 인증이 완료되었습니다.");
+      setEmailStatus((prev) => ({
+        ...prev,
+        verified: true,
+        expiresIn: 0,
+      }));
+      setSuccessMessage(payload.message || "이메일 인증이 완료되었습니다.");
     } catch (error) {
-      setErrorMessage(error.message || "이메일 인증에 실패했습니다.");
+      setErrorMessage(
+        error.message || "인증코드가 일치하지 않거나 만료되었습니다."
+      );
     } finally {
       setIsVerifyingEmail(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!emailVerified) {
-      setErrorMessage("이메일 인증을 먼저 완료해 주세요.");
+    if (!isEmailValid) {
+      setErrorMessage("올바른 이메일 형식으로 입력해 주세요.");
       return;
     }
 
-    if (form.password !== form.passwordConfirm) {
-      setErrorMessage("비밀번호가 일치하지 않습니다.");
+    if (!emailStatus.verified) {
+      setErrorMessage("이메일 인증을 완료해 주세요.");
+      return;
+    }
+
+    if (!isUsernameValid) {
+      setErrorMessage("아이디는 영문, 숫자, 밑줄만 사용해 2~20자로 입력해 주세요.");
+      return;
+    }
+
+    if (!isUsernameChecked) {
+      setErrorMessage("사용 가능한 아이디인지 먼저 확인해 주세요.");
+      return;
+    }
+
+    if (!isPasswordValid) {
+      setErrorMessage(
+        "비밀번호는 영문, 숫자, 특수문자를 포함해 8~20자로 입력해 주세요."
+      );
+      return;
+    }
+
+    if (!isPasswordConfirmMatched) {
+      setErrorMessage("비밀번호 확인이 일치하지 않습니다.");
       return;
     }
 
     if (!form.agreeTerms || !form.agreePrivacy) {
-      setErrorMessage("필수 약관에 동의해 주세요.");
+      setErrorMessage("필수 약관에 모두 동의해 주세요.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/auth/register", {
+      const response = await fetch(createApiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,15 +317,17 @@ export default function SignupPage() {
           password: form.password,
         }),
       });
+      const payload = await parseJsonResponse(response);
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(extractErrorMessage(data.detail, "회원가입에 실패했습니다."));
+      if (!response.ok) {
+        throw new Error(extractErrorMessage(payload, "회원가입에 실패했습니다."));
       }
 
-      localStorage.setItem("access_token", data.access_token);
-      setSuccessMessage("회원가입이 완료되었습니다. 자동으로 로그인됩니다.");
-      setTimeout(() => navigate("/"), 500);
+      login(payload.access_token, true);
+      setSuccessMessage(
+        payload.message || "회원가입이 완료되었습니다. 자동으로 로그인합니다."
+      );
+      window.setTimeout(() => navigate("/"), 500);
     } catch (error) {
       setErrorMessage(error.message || "회원가입에 실패했습니다.");
     } finally {
@@ -171,44 +342,138 @@ export default function SignupPage() {
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[560px] rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] md:p-9"
+        className="w-full max-w-[640px] rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)] md:p-9"
       >
-        <h2 className="mb-8 text-4xl font-black tracking-[-0.05em] text-slate-950 md:text-6xl">
-          이메일 가입
+        <h2 className="mb-2 text-4xl font-black tracking-[-0.05em] text-slate-950 md:text-6xl">
+          회원가입
         </h2>
+        <p className="mb-8 text-sm font-medium text-slate-500 md:text-base">
+          이메일 인증과 아이디 확인을 마치면 바로 시작할 수 있어요.
+        </p>
 
         <div className="space-y-5">
-          <div>
+          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4 md:p-5">
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
               이메일
             </label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              placeholder="이메일을 입력해 주세요"
-              className="h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
-            />
+            <div className="flex flex-col gap-3 md:flex-row">
+              <input
+                type="email"
+                value={form.email}
+                onChange={(event) => update("email", event.target.value.trim())}
+                disabled={emailStatus.verified}
+                placeholder="이메일을 입력해 주세요"
+                className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100"
+              />
+              <button
+                type="button"
+                onClick={handleSendEmail}
+                disabled={isSendingEmail || emailStatus.verified}
+                className="rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isSendingEmail
+                  ? "발송 중..."
+                  : emailStatus.sent && !emailStatus.verified
+                    ? "재전송"
+                    : emailStatus.verified
+                      ? "인증 완료"
+                      : "인증코드 발송"}
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-slate-500">
+              {emailStatus.verified
+                ? "이메일 인증이 완료되어 입력이 잠겼습니다."
+                : isEmailValid || !form.email
+                  ? "중복 확인 후 인증 메일을 보낼 수 있습니다."
+                  : "올바른 이메일 형식으로 입력해 주세요."}
+            </p>
+
+            {emailStatus.sent ? (
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-slate-700">
+                    인증코드를 입력해 주세요.
+                  </p>
+                  <span
+                    className={`text-sm font-bold ${
+                      emailStatus.expiresIn > 0 ? "text-slate-900" : "text-rose-500"
+                    }`}
+                  >
+                    {emailStatus.verified
+                      ? "인증 완료"
+                      : emailStatus.expiresIn > 0
+                        ? formatTimer(emailStatus.expiresIn)
+                        : "만료됨"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-3 md:flex-row">
+                  <input
+                    type="text"
+                    value={form.verificationCode}
+                    onChange={(event) =>
+                      update("verificationCode", event.target.value.replace(/\D/g, ""))
+                    }
+                    disabled={emailStatus.verified}
+                    maxLength={6}
+                    placeholder="6자리 인증코드"
+                    className="h-14 flex-1 rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyEmail}
+                    disabled={isVerifyingEmail || emailStatus.verified}
+                    className="rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isVerifyingEmail ? "확인 중..." : "인증코드 확인"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
               아이디
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={form.username}
-                onChange={(e) =>
-                  e.target.value.length <= 20 && update("username", e.target.value)
-                }
-                placeholder="영문, 숫자, 특수문자 2-20자"
-                className="h-14 w-full rounded-2xl border border-slate-200 px-4 pr-16 outline-none transition focus:border-slate-400"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
-                {form.username.length}/20
-              </span>
+            <div className="flex flex-col gap-3 md:flex-row">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={form.username}
+                  onChange={(event) =>
+                    update("username", event.target.value.replace(/\s/g, ""))
+                  }
+                  maxLength={20}
+                  placeholder="영문, 숫자, 밑줄만 사용해 2~20자"
+                  className="h-14 w-full rounded-2xl border border-slate-200 px-4 pr-16 outline-none transition focus:border-slate-400"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
+                  {form.username.length}/20
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCheckUsername}
+                disabled={isCheckingUsername}
+                className="rounded-2xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isCheckingUsername ? "확인 중..." : "중복 확인"}
+              </button>
             </div>
+            <p
+              className={`mt-2 text-sm ${
+                usernameCheck.status === "available"
+                  ? "text-emerald-600"
+                  : usernameCheck.status === "unavailable" ||
+                      usernameCheck.status === "error"
+                    ? "text-rose-600"
+                    : "text-slate-500"
+              }`}
+            >
+              {getUsernameMessage(usernameCheck.status) ||
+                "회원가입 전에 사용 가능한 아이디인지 확인해 주세요."}
+            </p>
           </div>
 
           <div>
@@ -218,52 +483,40 @@ export default function SignupPage() {
             <input
               type="password"
               value={form.password}
-              onChange={(e) => update("password", e.target.value)}
-              placeholder="영문, 숫자, 특수문자가 모두 들어간 8-20자"
+              onChange={(event) => update("password", event.target.value)}
+              placeholder="영문, 숫자, 특수문자를 포함해 8~20자"
               className="h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
             />
+            <p className="mt-2 text-sm text-slate-500">
+              {form.password.length === 0 || isPasswordValid
+                ? "영문, 숫자, 특수문자를 모두 포함해야 합니다."
+                : "비밀번호 형식이 올바르지 않습니다."}
+            </p>
           </div>
 
           <div>
+            <label className="mb-2 block text-sm font-extrabold text-slate-900">
+              비밀번호 확인
+            </label>
             <input
               type="password"
               value={form.passwordConfirm}
-              onChange={(e) => update("passwordConfirm", e.target.value)}
+              onChange={(event) => update("passwordConfirm", event.target.value)}
               placeholder="비밀번호를 한 번 더 입력해 주세요"
               className="h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
             />
-          </div>
-
-          <div className="rounded-3xl bg-slate-50 p-1">
-            <button
-              type="button"
-              onClick={handleSendEmail}
-              disabled={isSendingEmail || !form.email}
-              className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+            <p
+              className={`mt-2 text-sm ${
+                form.passwordConfirm.length === 0 || isPasswordConfirmMatched
+                  ? "text-slate-500"
+                  : "text-rose-600"
+              }`}
             >
-              {isSendingEmail ? "인증 메일 발송 중..." : emailVerified ? "이메일 인증 완료" : "이메일로 인증하기"}
-            </button>
+              {form.passwordConfirm.length === 0 || isPasswordConfirmMatched
+                ? "입력한 비밀번호와 동일하게 입력해 주세요."
+                : "비밀번호 확인이 일치하지 않습니다."}
+            </p>
           </div>
-
-          {emailSent ? (
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={form.verificationCode}
-                onChange={(e) => update("verificationCode", e.target.value)}
-                placeholder="인증 코드를 입력해 주세요"
-                className="h-14 flex-1 rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
-              />
-              <button
-                type="button"
-                onClick={handleVerifyEmail}
-                disabled={isVerifyingEmail || !form.verificationCode}
-                className="rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isVerifyingEmail ? "확인 중..." : "코드 확인"}
-              </button>
-            </div>
-          ) : null}
 
           {errorMessage ? (
             <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
@@ -282,7 +535,7 @@ export default function SignupPage() {
               <input
                 type="checkbox"
                 checked={form.agreeAll}
-                onChange={(e) => update("agreeAll", e.target.checked)}
+                onChange={(event) => update("agreeAll", event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300"
               />
               <span>전체 동의</span>
@@ -292,19 +545,23 @@ export default function SignupPage() {
                 <input
                   type="checkbox"
                   checked={form.agreeTerms}
-                  onChange={(e) => update("agreeTerms", e.target.checked)}
+                  onChange={(event) => update("agreeTerms", event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                <Link to="/terms" className="underline hover:text-slate-900">이용약관 동의</Link>
+                <Link to="/terms" className="underline hover:text-slate-900">
+                  이용약관 동의(필수)
+                </Link>
               </label>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
                   checked={form.agreePrivacy}
-                  onChange={(e) => update("agreePrivacy", e.target.checked)}
+                  onChange={(event) => update("agreePrivacy", event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                <Link to="/privacy" className="underline hover:text-slate-900">개인정보 수집 · 이용 동의</Link>
+                <Link to="/privacy" className="underline hover:text-slate-900">
+                  개인정보 수집 및 이용 동의(필수)
+                </Link>
               </label>
             </div>
           </div>
@@ -312,10 +569,17 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
+            className="w-full rounded-2xl bg-slate-950 px-4 py-4 text-base font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSubmitting ? "가입 중..." : "가입"}
+            {isSubmitting ? "가입 중..." : "회원가입"}
           </button>
+
+          <p className="text-center text-sm text-slate-500">
+            이미 계정이 있으신가요?{" "}
+            <Link to="/login" className="font-semibold text-sky-600 hover:text-sky-700">
+              로그인
+            </Link>
+          </p>
         </div>
       </form>
     </section>
