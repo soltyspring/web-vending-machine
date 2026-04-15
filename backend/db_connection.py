@@ -12,9 +12,6 @@ conn = pymysql.connect(
 
 cursor = conn.cursor()
 
-cursor.execute("DESCRIBE sites;")
-for table in cursor.fetchall():
-    print(table[0])
 
 cursor.execute("SELECT * FROM users;")
 for row in cursor.fetchall():

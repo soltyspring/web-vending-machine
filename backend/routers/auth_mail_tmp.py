@@ -1,4 +1,3 @@
-import logging
 import os
 import random
 import smtplib
@@ -14,11 +13,15 @@ from jose import jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 
+# 2026-04-13:
+# 이메일 인증 상태를 메모리 딕셔너리 대신
+# email_verifications 테이블에 저장하도록 변경.
+# 2026-04-13:
+# 인증코드를 실제 이메일로 발송하도록 SMTP 전송 로직 추가.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env", override=True)
+load_dotenv(BASE_DIR / ".env")
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-logger = logging.getLogger(__name__)
 
 
 class EmailRequest(BaseModel):
@@ -61,7 +64,6 @@ def get_connection():
     )
 
 
-#<< 2026-04-14: SMTP 실제 발송, 요청 이메일 수신 처리, 발송 로그 추가
 def send_verification_email(recipient_email: str, code: str):
     smtp_host = os.getenv("SMTP_HOST")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
@@ -100,13 +102,6 @@ def send_verification_email(recipient_email: str, code: str):
     )
 
     try:
-        logger.info(
-            "이메일 인증코드 발송 시도: to=%s from=%s smtp_host=%s port=%s",
-            recipient_email,
-            smtp_from_email,
-            smtp_host,
-            smtp_port,
-        )
         if smtp_use_ssl:
             with smtplib.SMTP_SSL(
                 smtp_host,
@@ -121,19 +116,8 @@ def send_verification_email(recipient_email: str, code: str):
                     server.starttls(context=ssl.create_default_context())
                 server.login(smtp_username, smtp_password)
                 server.send_message(message)
-        logger.info(
-            "이메일 인증코드 발송 성공: to=%s from=%s",
-            recipient_email,
-            smtp_from_email,
-        )
     except Exception as exc:
-        logger.exception(
-            "이메일 인증코드 발송 실패: to=%s from=%s",
-            recipient_email,
-            smtp_from_email,
-        )
         raise HTTPException(status_code=502, detail=f"이메일 발송에 실패했습니다: {exc}")
-#>> 2026-04-14: SMTP 실제 발송, 요청 이메일 수신 처리, 발송 로그 추가
 
 
 def validate_password_length(password: str):
@@ -161,21 +145,6 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-#<< 2026-04-14: 회원가입 프론트 연동용 아이디 중복 확인 API 추가
-@router.get("/check-username")
-def check_username(username: str = Query(...)):
-    conn = get_connection()
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_no FROM users WHERE username = %s", (username,))
-        user = cursor.fetchone()
-        return {"available": user is None}
-    finally:
-        conn.close()
-#>> 2026-04-14: 회원가입 프론트 연동용 아이디 중복 확인 API 추가
-
-
 @router.post("/login")
 def login(data: LoginRequest):
     conn = get_connection()
@@ -191,24 +160,32 @@ def login(data: LoginRequest):
         if not verify_password(data.password, user["password_hash"]):
             raise HTTPException(status_code=400, detail="비밀번호가 올바르지 않습니다.")
 
-        access_token = create_access_token(
-            {"sub": user["username"], "user_no": user["user_no"]}
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
+        access_token = create_access_token({
+            "sub": user["username"],
+            "user_no": user["user_no"],
+        })
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
     finally:
         conn.close()
 
 
-#<< 2026-04-14: email_verifications 테이블 기준 인증코드 저장 및 이메일 발송 처리로 변경
 @router.post("/send-email")
 def send_email(data: EmailRequest):
     conn = get_connection()
     code = f"{random.randint(100000, 999999)}"
 
     try:
-        logger.info("인증코드 요청 수신: email=%s", data.email)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM email_verifications WHERE email = %s", (data.email,))
+        # 2026-04-13:
+        # 인증코드 요청 시 이메일별 인증 row를 insert/update 하도록 변경.
+        cursor.execute(
+            "SELECT id FROM email_verifications WHERE email = %s",
+            (data.email,),
+        )
         existing = cursor.fetchone()
 
         if existing:
@@ -233,19 +210,19 @@ def send_email(data: EmailRequest):
             )
 
         send_verification_email(data.email, code)
-        return {"message": "인증 코드를 이메일로 발송했습니다."}
+        return {"message": "인증 코드 발송 완료"}
     finally:
         conn.close()
-#>> 2026-04-14: email_verifications 테이블 기준 인증코드 저장 및 이메일 발송 처리로 변경
 
 
-#<< 2026-04-14: 이메일+코드+만료시간 검증 후 verified=1 업데이트 처리
 @router.post("/verify-email")
 def verify_email(data: VerifyEmailRequest):
     conn = get_connection()
 
     try:
         cursor = conn.cursor()
+        # 2026-04-13:
+        # 이메일 + 코드 + 만료시간을 함께 검증한 뒤 verified 값을 1로 갱신.
         cursor.execute(
             """
             SELECT id
@@ -271,10 +248,9 @@ def verify_email(data: VerifyEmailRequest):
             (verification["id"],),
         )
 
-        return {"message": "이메일 인증이 완료되었습니다."}
+        return {"message": "인증 완료"}
     finally:
         conn.close()
-#>> 2026-04-14: 이메일+코드+만료시간 검증 후 verified=1 업데이트 처리
 
 
 @router.get("/check-email")
@@ -285,18 +261,23 @@ def check_email(email: str = Query(...)):
         cursor = conn.cursor()
         cursor.execute("SELECT user_no FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
-        return {"available": user is None}
+
+        if user:
+            return {"available": False}
+
+        return {"available": True}
     finally:
         conn.close()
 
 
-#<< 2026-04-14: 회원가입 시 DB 인증 완료 이메일만 가입 허용하도록 변경
 @router.post("/register")
 def register(data: RegisterRequest):
     conn = get_connection()
 
     try:
         cursor = conn.cursor()
+        # 2026-04-13:
+        # 회원가입 전 email_verifications 테이블에서 인증 완료 여부를 확인.
         cursor.execute(
             """
             SELECT id
@@ -313,11 +294,13 @@ def register(data: RegisterRequest):
             raise HTTPException(status_code=400, detail="이메일 인증이 필요합니다.")
 
         cursor.execute("SELECT user_no FROM users WHERE username = %s", (data.username,))
-        if cursor.fetchone():
+        existing_username = cursor.fetchone()
+        if existing_username:
             raise HTTPException(status_code=400, detail="이미 사용 중인 아이디입니다.")
 
         cursor.execute("SELECT user_no FROM users WHERE email = %s", (data.email,))
-        if cursor.fetchone():
+        existing_user = cursor.fetchone()
+        if existing_user:
             raise HTTPException(status_code=400, detail="이미 가입한 이메일입니다.")
 
         hashed_password = hash_password(data.password)
@@ -338,9 +321,11 @@ def register(data: RegisterRequest):
             (verification["id"],),
         )
 
-        access_token = create_access_token(
-            {"sub": data.username, "user_no": cursor.lastrowid}
-        )
+        access_token = create_access_token({
+            "sub": data.username,
+            "user_no": cursor.lastrowid,
+        })
+
         return {
             "message": "회원가입이 완료되었습니다.",
             "access_token": access_token,
@@ -348,4 +333,3 @@ def register(data: RegisterRequest):
         }
     finally:
         conn.close()
-#>> 2026-04-14: 회원가입 시 DB 인증 완료 이메일만 가입 허용하도록 변경
