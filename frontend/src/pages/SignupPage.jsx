@@ -16,12 +16,33 @@ function formatTimer(seconds) {
   return `${minutes}:${remainSeconds}`;
 }
 
-function getUsernameMessage(status) {
-  if (status === "available") return "사용 가능한 아이디입니다.";
-  if (status === "unavailable") return "이미 사용 중인 아이디입니다.";
-  if (status === "error") return "아이디 확인 중 문제가 발생했습니다.";
-  return "";
-}
+const EyeIcon = ({ open }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-5 w-5"
+    aria-hidden="true"
+  >
+    {open ? (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ) : (
+      <>
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-6.5 0-10-7-10-7a18.45 18.45 0 0 1 4.22-5.06" />
+        <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19" />
+        <path d="M14.12 14.12A3 3 0 1 1 9.88 9.88" />
+        <line x1="2" y1="2" x2="22" y2="22" />
+      </>
+    )}
+  </svg>
+);
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -49,7 +70,10 @@ export default function SignupPage() {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [generalError, setGeneralError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   const isEmailValid = emailPattern.test(form.email);
@@ -59,6 +83,10 @@ export default function SignupPage() {
     form.passwordConfirm.length > 0 && form.password === form.passwordConfirm;
   const isUsernameChecked =
     usernameCheck.status === "available" && usernameCheck.value === form.username;
+  const usernameNeedsRecheck =
+    form.username.length > 0 &&
+    usernameCheck.status !== "idle" &&
+    usernameCheck.value !== form.username;
 
   useEffect(() => {
     if (!emailStatus.sent || emailStatus.verified || emailStatus.expiresIn <= 0) {
@@ -79,6 +107,15 @@ export default function SignupPage() {
     return () => window.clearInterval(timer);
   }, [emailStatus.expiresIn, emailStatus.sent, emailStatus.verified]);
 
+  const clearFieldError = (key) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   const update = (key, value) => {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
@@ -93,13 +130,18 @@ export default function SignupPage() {
       return next;
     });
 
+    clearFieldError(key);
+    if (key === "agreeTerms" || key === "agreePrivacy" || key === "agreeAll") {
+      clearFieldError("agree");
+    }
+
     if (key === "email" && !emailStatus.verified) {
       setEmailStatus({ sent: false, verified: false, expiresIn: 0 });
       setSuccessMessage("");
     }
 
     if (key === "verificationCode") {
-      setErrorMessage("");
+      clearFieldError("verificationCode");
     }
 
     if (key === "username") {
@@ -109,16 +151,20 @@ export default function SignupPage() {
   };
 
   const handleCheckUsername = async () => {
-    setErrorMessage("");
+    setGeneralError("");
     setSuccessMessage("");
+    clearFieldError("username");
 
     if (!form.username) {
-      setErrorMessage("아이디를 입력해 주세요.");
+      setFieldErrors((prev) => ({ ...prev, username: "아이디를 입력해 주세요." }));
       return;
     }
 
     if (!isUsernameValid) {
-      setErrorMessage("아이디는 영문, 숫자, 밑줄만 사용해 2~20자로 입력해 주세요.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        username: "아이디는 영문, 숫자, 밑줄만 사용해 2~20자로 입력해 주세요.",
+      }));
       return;
     }
 
@@ -144,23 +190,30 @@ export default function SignupPage() {
       });
     } catch (error) {
       setUsernameCheck({ status: "error", value: form.username });
-      setErrorMessage(error.message || "아이디 중복 확인에 실패했습니다.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        username: error.message || "아이디 중복 확인에 실패했습니다.",
+      }));
     } finally {
       setIsCheckingUsername(false);
     }
   };
 
   const handleSendEmail = async () => {
-    setErrorMessage("");
+    setGeneralError("");
     setSuccessMessage("");
+    clearFieldError("email");
 
     if (!form.email) {
-      setErrorMessage("이메일을 입력해 주세요.");
+      setFieldErrors((prev) => ({ ...prev, email: "이메일을 입력해 주세요." }));
       return;
     }
 
     if (!isEmailValid) {
-      setErrorMessage("올바른 이메일 형식으로 입력해 주세요.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        email: "올바른 이메일 형식으로 입력해 주세요.",
+      }));
       return;
     }
 
@@ -204,28 +257,41 @@ export default function SignupPage() {
         sendPayload.message || "인증 코드가 발송되었습니다. 메일함을 확인해 주세요."
       );
     } catch (error) {
-      setErrorMessage(error.message || "인증 코드를 보내지 못했습니다.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        email: error.message || "인증 코드를 보내지 못했습니다.",
+      }));
     } finally {
       setIsSendingEmail(false);
     }
   };
 
   const handleVerifyEmail = async () => {
-    setErrorMessage("");
+    setGeneralError("");
     setSuccessMessage("");
+    clearFieldError("verificationCode");
 
     if (!emailStatus.sent) {
-      setErrorMessage("먼저 이메일 인증 코드를 발송해 주세요.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        verificationCode: "먼저 이메일 인증 코드를 발송해 주세요.",
+      }));
       return;
     }
 
     if (!form.verificationCode) {
-      setErrorMessage("인증 코드를 입력해 주세요.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        verificationCode: "인증 코드를 입력해 주세요.",
+      }));
       return;
     }
 
     if (emailStatus.expiresIn <= 0) {
-      setErrorMessage("인증코드가 만료되었습니다. 재전송 후 다시 시도해 주세요.");
+      setFieldErrors((prev) => ({
+        ...prev,
+        verificationCode: "인증코드가 만료되었습니다. 재전송 후 다시 시도해 주세요.",
+      }));
       return;
     }
 
@@ -255,9 +321,11 @@ export default function SignupPage() {
       }));
       setSuccessMessage(payload.message || "이메일 인증이 완료되었습니다.");
     } catch (error) {
-      setErrorMessage(
-        error.message || "인증코드가 일치하지 않거나 만료되었습니다."
-      );
+      setFieldErrors((prev) => ({
+        ...prev,
+        verificationCode:
+          error.message || "인증코드가 일치하지 않거나 만료되었습니다.",
+      }));
     } finally {
       setIsVerifyingEmail(false);
     }
@@ -265,46 +333,53 @@ export default function SignupPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setErrorMessage("");
+    setGeneralError("");
     setSuccessMessage("");
 
-    if (!isEmailValid) {
-      setErrorMessage("올바른 이메일 형식으로 입력해 주세요.");
-      return;
+    const nextErrors = {};
+
+    if (!form.email) {
+      nextErrors.email = "이메일을 입력해 주세요.";
+    } else if (!isEmailValid) {
+      nextErrors.email = "올바른 이메일 형식으로 입력해 주세요.";
+    } else if (!emailStatus.verified) {
+      nextErrors.email = "이메일 인증을 완료해 주세요.";
     }
 
-    if (!emailStatus.verified) {
-      setErrorMessage("이메일 인증을 완료해 주세요.");
-      return;
+    if (!form.username) {
+      nextErrors.username = "아이디를 입력해 주세요.";
+    } else if (!isUsernameValid) {
+      nextErrors.username =
+        "아이디는 영문, 숫자, 밑줄만 사용해 2~20자로 입력해 주세요.";
+    } else if (usernameNeedsRecheck) {
+      nextErrors.username = "아이디가 변경되었어요. 중복 확인을 다시 해주세요.";
+    } else if (!isUsernameChecked) {
+      nextErrors.username = "사용 가능한 아이디인지 먼저 확인해 주세요.";
     }
 
-    if (!isUsernameValid) {
-      setErrorMessage("아이디는 영문, 숫자, 밑줄만 사용해 2~20자로 입력해 주세요.");
-      return;
+    if (!form.password) {
+      nextErrors.password = "비밀번호를 입력해 주세요.";
+    } else if (!isPasswordValid) {
+      nextErrors.password =
+        "비밀번호는 영문, 숫자, 특수문자를 포함해 8~20자로 입력해 주세요.";
     }
 
-    if (!isUsernameChecked) {
-      setErrorMessage("사용 가능한 아이디인지 먼저 확인해 주세요.");
-      return;
-    }
-
-    if (!isPasswordValid) {
-      setErrorMessage(
-        "비밀번호는 영문, 숫자, 특수문자를 포함해 8~20자로 입력해 주세요."
-      );
-      return;
-    }
-
-    if (!isPasswordConfirmMatched) {
-      setErrorMessage("비밀번호 확인이 일치하지 않습니다.");
-      return;
+    if (!form.passwordConfirm) {
+      nextErrors.passwordConfirm = "비밀번호 확인을 입력해 주세요.";
+    } else if (!isPasswordConfirmMatched) {
+      nextErrors.passwordConfirm = "비밀번호 확인이 일치하지 않습니다.";
     }
 
     if (!form.agreeTerms || !form.agreePrivacy) {
-      setErrorMessage("필수 약관에 모두 동의해 주세요.");
+      nextErrors.agree = "필수 약관에 모두 동의해 주세요.";
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
       return;
     }
 
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
@@ -329,11 +404,61 @@ export default function SignupPage() {
       );
       window.setTimeout(() => navigate("/"), 500);
     } catch (error) {
-      setErrorMessage(error.message || "회원가입에 실패했습니다.");
+      setGeneralError(error.message || "회원가입에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const emailHelperText = fieldErrors.email
+    ? fieldErrors.email
+    : emailStatus.verified
+      ? "이메일 인증이 완료되어 입력이 잠겼습니다."
+      : isEmailValid || !form.email
+        ? "중복 확인 후 인증 메일을 보낼 수 있습니다."
+        : "올바른 이메일 형식으로 입력해 주세요.";
+  const emailHelperClass = fieldErrors.email ? "text-rose-600" : "text-slate-500";
+
+  let usernameHelper = "회원가입 전에 사용 가능한 아이디인지 확인해 주세요.";
+  let usernameHelperClass = "text-slate-500";
+  if (fieldErrors.username) {
+    usernameHelper = fieldErrors.username;
+    usernameHelperClass = "text-rose-600";
+  } else if (usernameNeedsRecheck) {
+    usernameHelper = "아이디가 변경되었어요. 중복 확인을 다시 해주세요.";
+    usernameHelperClass = "text-amber-600";
+  } else if (usernameCheck.status === "available") {
+    usernameHelper = "사용 가능한 아이디입니다.";
+    usernameHelperClass = "text-emerald-600";
+  } else if (usernameCheck.status === "unavailable") {
+    usernameHelper = "이미 사용 중인 아이디입니다.";
+    usernameHelperClass = "text-rose-600";
+  } else if (usernameCheck.status === "error") {
+    usernameHelper = "아이디 확인 중 문제가 발생했습니다.";
+    usernameHelperClass = "text-rose-600";
+  }
+
+  const passwordHelper = fieldErrors.password
+    ? fieldErrors.password
+    : form.password.length === 0 || isPasswordValid
+      ? "영문, 숫자, 특수문자를 모두 포함해야 합니다."
+      : "비밀번호 형식이 올바르지 않습니다.";
+  const passwordHelperClass = fieldErrors.password
+    ? "text-rose-600"
+    : form.password.length === 0 || isPasswordValid
+      ? "text-slate-500"
+      : "text-rose-600";
+
+  const passwordConfirmHelper = fieldErrors.passwordConfirm
+    ? fieldErrors.passwordConfirm
+    : form.passwordConfirm.length === 0 || isPasswordConfirmMatched
+      ? "입력한 비밀번호와 동일하게 입력해 주세요."
+      : "비밀번호 확인이 일치하지 않습니다.";
+  const passwordConfirmHelperClass =
+    fieldErrors.passwordConfirm ||
+    (form.passwordConfirm.length > 0 && !isPasswordConfirmMatched)
+      ? "text-rose-600"
+      : "text-slate-500";
 
   return (
     <section
@@ -363,7 +488,9 @@ export default function SignupPage() {
                 onChange={(event) => update("email", event.target.value.trim())}
                 disabled={emailStatus.verified}
                 placeholder="이메일을 입력해 주세요"
-                className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-4 outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100"
+                className={`h-14 flex-1 rounded-2xl border bg-white px-4 outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 ${
+                  fieldErrors.email ? "border-rose-300" : "border-slate-200"
+                }`}
               />
               <button
                 type="button"
@@ -380,13 +507,7 @@ export default function SignupPage() {
                       : "인증코드 발송"}
               </button>
             </div>
-            <p className="mt-2 text-sm text-slate-500">
-              {emailStatus.verified
-                ? "이메일 인증이 완료되어 입력이 잠겼습니다."
-                : isEmailValid || !form.email
-                  ? "중복 확인 후 인증 메일을 보낼 수 있습니다."
-                  : "올바른 이메일 형식으로 입력해 주세요."}
-            </p>
+            <p className={`mt-2 text-sm ${emailHelperClass}`}>{emailHelperText}</p>
 
             {emailStatus.sent ? (
               <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
@@ -417,7 +538,11 @@ export default function SignupPage() {
                     disabled={emailStatus.verified}
                     maxLength={6}
                     placeholder="6자리 인증코드"
-                    className="h-14 flex-1 rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    className={`h-14 flex-1 rounded-2xl border px-4 outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:bg-slate-100 ${
+                      fieldErrors.verificationCode
+                        ? "border-rose-300"
+                        : "border-slate-200"
+                    }`}
                   />
                   <button
                     type="button"
@@ -428,6 +553,11 @@ export default function SignupPage() {
                     {isVerifyingEmail ? "확인 중..." : "인증코드 확인"}
                   </button>
                 </div>
+                {fieldErrors.verificationCode ? (
+                  <p className="mt-2 text-sm text-rose-600">
+                    {fieldErrors.verificationCode}
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -446,7 +576,9 @@ export default function SignupPage() {
                   }
                   maxLength={20}
                   placeholder="영문, 숫자, 밑줄만 사용해 2~20자"
-                  className="h-14 w-full rounded-2xl border border-slate-200 px-4 pr-16 outline-none transition focus:border-slate-400"
+                  className={`h-14 w-full rounded-2xl border px-4 pr-16 outline-none transition focus:border-slate-400 ${
+                    fieldErrors.username ? "border-rose-300" : "border-slate-200"
+                  }`}
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
                   {form.username.length}/20
@@ -461,66 +593,69 @@ export default function SignupPage() {
                 {isCheckingUsername ? "확인 중..." : "중복 확인"}
               </button>
             </div>
-            <p
-              className={`mt-2 text-sm ${
-                usernameCheck.status === "available"
-                  ? "text-emerald-600"
-                  : usernameCheck.status === "unavailable" ||
-                      usernameCheck.status === "error"
-                    ? "text-rose-600"
-                    : "text-slate-500"
-              }`}
-            >
-              {getUsernameMessage(usernameCheck.status) ||
-                "회원가입 전에 사용 가능한 아이디인지 확인해 주세요."}
-            </p>
+            <p className={`mt-2 text-sm ${usernameHelperClass}`}>{usernameHelper}</p>
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
               비밀번호
             </label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(event) => update("password", event.target.value)}
-              placeholder="영문, 숫자, 특수문자를 포함해 8~20자"
-              className="h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
-            />
-            <p className="mt-2 text-sm text-slate-500">
-              {form.password.length === 0 || isPasswordValid
-                ? "영문, 숫자, 특수문자를 모두 포함해야 합니다."
-                : "비밀번호 형식이 올바르지 않습니다."}
-            </p>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(event) => update("password", event.target.value)}
+                placeholder="영문, 숫자, 특수문자를 포함해 8~20자"
+                className={`h-14 w-full rounded-2xl border px-4 pr-12 outline-none transition focus:border-slate-400 ${
+                  fieldErrors.password ? "border-rose-300" : "border-slate-200"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-500 hover:text-slate-900"
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
+            <p className={`mt-2 text-sm ${passwordHelperClass}`}>{passwordHelper}</p>
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-extrabold text-slate-900">
               비밀번호 확인
             </label>
-            <input
-              type="password"
-              value={form.passwordConfirm}
-              onChange={(event) => update("passwordConfirm", event.target.value)}
-              placeholder="비밀번호를 한 번 더 입력해 주세요"
-              className="h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none transition focus:border-slate-400"
-            />
-            <p
-              className={`mt-2 text-sm ${
-                form.passwordConfirm.length === 0 || isPasswordConfirmMatched
-                  ? "text-slate-500"
-                  : "text-rose-600"
-              }`}
-            >
-              {form.passwordConfirm.length === 0 || isPasswordConfirmMatched
-                ? "입력한 비밀번호와 동일하게 입력해 주세요."
-                : "비밀번호 확인이 일치하지 않습니다."}
+            <div className="relative">
+              <input
+                type={showPasswordConfirm ? "text" : "password"}
+                value={form.passwordConfirm}
+                onChange={(event) => update("passwordConfirm", event.target.value)}
+                placeholder="비밀번호를 한 번 더 입력해 주세요"
+                className={`h-14 w-full rounded-2xl border px-4 pr-12 outline-none transition focus:border-slate-400 ${
+                  fieldErrors.passwordConfirm ||
+                  (form.passwordConfirm.length > 0 && !isPasswordConfirmMatched)
+                    ? "border-rose-300"
+                    : "border-slate-200"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirm((prev) => !prev)}
+                aria-label={showPasswordConfirm ? "비밀번호 숨기기" : "비밀번호 표시"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-500 hover:text-slate-900"
+              >
+                <EyeIcon open={showPasswordConfirm} />
+              </button>
+            </div>
+            <p className={`mt-2 text-sm ${passwordConfirmHelperClass}`}>
+              {passwordConfirmHelper}
             </p>
           </div>
 
-          {errorMessage ? (
+          {generalError ? (
             <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
-              {errorMessage}
+              {generalError}
             </p>
           ) : null}
 
@@ -564,6 +699,9 @@ export default function SignupPage() {
                 </Link>
               </label>
             </div>
+            {fieldErrors.agree ? (
+              <p className="mt-3 text-sm text-rose-600">{fieldErrors.agree}</p>
+            ) : null}
           </div>
 
           <button
