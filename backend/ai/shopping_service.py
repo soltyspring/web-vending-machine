@@ -71,6 +71,36 @@ SHOPPING_TEMPLATE_SCHEMA = {
                     "required": ["name", "role", "text"],
                 },
             },
+            "theme": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "primaryColor": {"type": "string"},
+                    "secondaryColor": {"type": "string"},
+                    "accentColor": {"type": "string"},
+                    "backgroundColor": {"type": "string"},
+                    "surfaceColor": {"type": "string"},
+                    "textColor": {"type": "string"},
+                    "productImageScale": {
+                        "type": "string",
+                        "enum": ["small", "medium", "large"],
+                    },
+                    "density": {
+                        "type": "string",
+                        "enum": ["compact", "balanced", "airy"],
+                    },
+                },
+                "required": [
+                    "primaryColor",
+                    "secondaryColor",
+                    "accentColor",
+                    "backgroundColor",
+                    "surfaceColor",
+                    "textColor",
+                    "productImageScale",
+                    "density",
+                ],
+            },
         },
         "required": [
             "brandName",
@@ -90,6 +120,7 @@ SHOPPING_TEMPLATE_SCHEMA = {
             "footerDescription",
             "productCards",
             "reviewCards",
+            "theme",
         ],
     },
 }

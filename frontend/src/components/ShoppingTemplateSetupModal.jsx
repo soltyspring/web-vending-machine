@@ -3,6 +3,7 @@ const moodOptions = [
   { value: "luxury", label: "고급스러운" },
   { value: "warm", label: "따뜻한" },
   { value: "trendy", label: "트렌디" },
+  { value: "custom", label: "직접 입력" },
 ];
 
 const menuOptions = [
@@ -106,6 +107,15 @@ export default function ShoppingTemplateSetupModal({
                 </button>
               ))}
             </div>
+            {form.mood === "custom" ? (
+              <textarea
+                value={form.customMood}
+                onChange={(e) => onChange("customMood", e.target.value)}
+                rows={3}
+                placeholder="예: 파스텔 민트톤에 깨끗하고 청량한 느낌"
+                className="mt-3 w-full rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm font-medium text-stone-800 outline-none transition focus:border-stone-400"
+              />
+            ) : null}
           </div>
 
           <div>
@@ -141,7 +151,7 @@ export default function ShoppingTemplateSetupModal({
               value={form.customRequest}
               onChange={(e) => onChange("customRequest", e.target.value)}
               rows={4}
-              placeholder="예: 따뜻한 베이지 톤으로, 첫 화면에 베스트셀러와 리뷰를 강조해 주세요."
+              placeholder="예: 첫 화면에 베스트셀러와 리뷰를 강조해 주세요."
               className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm font-medium text-stone-800 outline-none transition focus:border-stone-400"
             />
           </div>

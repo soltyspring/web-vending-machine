@@ -7,6 +7,7 @@ class TemplateGenerateRequest(BaseModel):
     businessType: str
     tagline: str
     mood: str
+    customMood: str = ""
     menus: list[str]
     customRequest: str = ""
 
@@ -29,3 +30,4 @@ class TemplateGenerateResponse(BaseModel):
     footerDescription: str
     productCards: list[dict]
     reviewCards: list[dict]
+    theme: dict = Field(default_factory=dict)
