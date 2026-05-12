@@ -218,7 +218,7 @@ def send_verification_email(recipient_email: str, code: str):
     if missing:
         raise HTTPException(
             status_code=500,
-            detail=f"SMTP settings are missing: {', '.join(missing)}",
+            detail="잠시 후 다시 시도해 주세요.",
         )
 
     message = EmailMessage()
@@ -268,7 +268,7 @@ def send_verification_email(recipient_email: str, code: str):
             recipient_email,
             smtp_from_email,
         )
-        raise HTTPException(status_code=502, detail=f"이메일 발송에 실패했습니다: {exc}")
+        raise HTTPException(status_code=500, detail="잠시 후 다시 시도해 주세요.")
 #>> 2026-04-14: SMTP 실제 발송, 요청 이메일 수신 처리, 발송 로그 추가
 
 
@@ -287,7 +287,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         return pwd_context.verify(plain_password, hashed_password)
     except ValueError:
-        raise HTTPException(status_code=400, detail="비밀번호 형식이 올바르지 않습니다.")
+        raise HTTPException(
+    status_code=400,
+    detail="새 비밀번호 형식이 올바르지 않습니다."
+)
 
 
 def create_access_token(data: dict):
@@ -485,3 +488,259 @@ def register(data: RegisterRequest):
     finally:
         conn.close()
 #>> 2026-04-14: 회원가입 시 DB 인증 완료 이메일만 가입 허용하도록 변경
+
+#api 7개 추가 5-12일
+@router.post("/find-username")
+def find_username(data: FindUsernameRequest):
+    validate_email_format(data.email)
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT username FROM users WHERE email = %s",
+            (data.email,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        return {
+            "message": COMMON_MESSAGES["FOUND_USERNAME"],
+            "maskedUsername": mask_username(user["username"]),
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="잠시 후 다시 시도해 주세요.")
+    finally:
+        conn.close()
+
+
+@router.post("/send-find-username-code")
+def send_find_username_code(data: SendFindUsernameCodeRequest):
+    validate_email_format(data.email)
+    conn = get_connection()
+    code = f"{random.randint(100000, 999999)}"
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_no FROM users WHERE email = %s",
+            (data.email,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        save_recovery_code(cursor, data.email, code)
+        send_verification_email(data.email, code)
+
+        return {"message": "인증코드를 이메일로 발송했습니다."}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=COMMON_MESSAGES["SERVER_ERROR"])
+    finally:
+        conn.close()
+
+
+@router.post("/verify-find-username-code")
+def verify_find_username_code(data: VerifyFindUsernameCodeRequest):
+    validate_email_format(data.email)
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT username FROM users WHERE email = %s",
+            (data.email,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        verification = check_recovery_code(cursor, data.email, data.code)
+
+        cursor.execute(
+            """
+            UPDATE email_verifications
+            SET verified = 0,
+                expires_at = NOW(),
+                updated_at = NOW()
+            WHERE id = %s
+            """,
+            (verification["id"],),
+        )
+
+        return {
+            "message": COMMON_MESSAGES["VERIFIED"],
+            "username": user["username"],
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=COMMON_MESSAGES["SERVER_ERROR"])
+    finally:
+        conn.close()
+
+
+@router.post("/find-email")
+def find_email(data: FindEmailRequest):
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT email FROM users WHERE username = %s",
+            (data.username,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        return {
+            "message": COMMON_MESSAGES["FOUND_EMAIL"],
+            "maskedEmail": mask_email(user["email"]),
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=COMMON_MESSAGES["SERVER_ERROR"])
+    finally:
+        conn.close()
+
+
+@router.post("/send-password-reset-code")
+def send_password_reset_code(data: SendPasswordResetCodeRequest):
+    validate_email_format(data.email)
+    conn = get_connection()
+    code = f"{random.randint(100000, 999999)}"
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_no FROM users WHERE email = %s",
+            (data.email,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        save_recovery_code(cursor, data.email, code)
+        send_verification_email(data.email, code)
+
+        return {"message": COMMON_MESSAGES["SEND_CODE"]}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=COMMON_MESSAGES["SERVER_ERROR"])
+    finally:
+        conn.close()
+
+
+@router.post("/verify-password-reset-code")
+def verify_password_reset_code(data: VerifyPasswordResetCodeRequest):
+    validate_email_format(data.email)
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT user_no FROM users WHERE email = %s",
+            (data.email,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        verification = check_recovery_code(cursor, data.email, data.code)
+
+        reset_token = secrets.token_urlsafe(32)
+        password_reset_tokens[reset_token] = {
+            "email": data.email,
+            "expires_at": datetime.now() + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES),
+            "used": False,
+        }
+
+        cursor.execute(
+            """
+            UPDATE email_verifications
+            SET verified = 0,
+                expires_at = NOW(),
+                updated_at = NOW()
+            WHERE id = %s
+            """,
+            (verification["id"],),
+        )
+
+        return {
+            "message": COMMON_MESSAGES["VERIFIED"],
+            "resetToken": reset_token,
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=COMMON_MESSAGES["SERVER_ERROR"])
+    finally:
+        conn.close()
+
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest):
+    validate_email_format(data.email)
+    validate_new_password(data.newPassword)
+
+    token_info = password_reset_tokens.get(data.resetToken)
+
+    if (
+        not token_info
+        or token_info["email"] != data.email
+        or token_info["used"]
+        or token_info["expires_at"] <= datetime.now()
+    ):
+        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["EXPIRED_CODE"])
+
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT user_no FROM users WHERE email = %s",
+            (data.email,),
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        hashed_password = hash_password(data.newPassword)
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET password_hash = %s,
+                updated_at = NOW()
+            WHERE email = %s
+            """,
+            (hashed_password, data.email),
+        )
+
+        password_reset_tokens[data.resetToken]["used"] = True
+
+        return {"message": COMMON_MESSAGES["RESET_PASSWORD"]}
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=COMMON_MESSAGES["SERVER_ERROR"])
+    finally:
+        conn.close()
