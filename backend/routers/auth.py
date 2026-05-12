@@ -1,4 +1,5 @@
 import logging
+logging.basicConfig(level=logging.INFO)
 import os
 import random
 import smtplib
@@ -288,8 +289,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return pwd_context.verify(plain_password, hashed_password)
     except ValueError:
         raise HTTPException(
-    status_code=400,
-    detail="새 비밀번호 형식이 올바르지 않습니다."
+         status_code=400,
+         detail="새 비밀번호 형식이 올바르지 않습니다."
 )
 
 
