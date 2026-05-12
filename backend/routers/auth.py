@@ -3,6 +3,8 @@ import os
 import random
 import smtplib
 import ssl
+import re
+import secrets
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
@@ -47,6 +49,140 @@ SECRET_KEY = "login-secret-key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 EMAIL_CODE_EXPIRE_MINUTES = 10
+
+#리셋 토큰 추가 5-12일
+RESET_TOKEN_EXPIRE_MINUTES = 10
+
+COMMON_MESSAGES = {
+    "FOUND_USERNAME": "아이디를 찾았습니다.",
+    "FOUND_EMAIL": "이메일을 찾았습니다.",
+    "SEND_CODE": "인증코드를 이메일로 발송했습니다.",
+    "VERIFIED": "인증이 완료되었습니다.",
+    "RESET_PASSWORD": "비밀번호가 재설정되었습니다.",
+    "NOT_FOUND": "가입된 계정을 찾을 수 없습니다.",
+    "INVALID_EMAIL": "이메일 형식이 올바르지 않습니다.",
+    "INVALID_CODE": "인증코드가 올바르지 않습니다.",
+    "EXPIRED_CODE": "인증코드가 만료되었습니다.",
+    "INVALID_PASSWORD": "새 비밀번호 형식이 올바르지 않습니다.",
+    "SERVER_ERROR": "잠시 후 다시 시도해 주세요.",
+}
+
+EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+PASSWORD_PATTERN = re.compile(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,20}$")
+
+password_reset_tokens = {}
+
+
+class FindUsernameRequest(BaseModel):
+    email: str
+
+
+class SendFindUsernameCodeRequest(BaseModel):
+    email: str
+
+
+class VerifyFindUsernameCodeRequest(BaseModel):
+    email: str
+    code: str
+
+
+class FindEmailRequest(BaseModel):
+    username: str
+
+
+class SendPasswordResetCodeRequest(BaseModel):
+    email: str
+
+
+class VerifyPasswordResetCodeRequest(BaseModel):
+    email: str
+    code: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    resetToken: str
+    newPassword: str
+
+
+def validate_email_format(email: str):
+    if not EMAIL_PATTERN.match(email):
+        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["INVALID_EMAIL"])
+
+
+def validate_new_password(password: str):
+    if not PASSWORD_PATTERN.match(password):
+        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["INVALID_PASSWORD"])
+
+    validate_password_length(password)
+
+
+def mask_username(username: str) -> str:
+    length = len(username)
+
+    if length < 3:
+        visible_count = 1
+    elif length < 5:
+        visible_count = 3
+    elif length >= 7:
+        visible_count = 5
+    else:
+        visible_count = 3
+
+    return username[:visible_count] + "*" * (length - visible_count)
+
+
+def mask_email(email: str) -> str:
+    local_part, domain = email.split("@", 1)
+    return f"{mask_username(local_part)}@{domain}"
+
+
+def save_recovery_code(cursor, email: str, code: str):
+    cursor.execute("SELECT id FROM email_verifications WHERE email = %s", (email,))
+    existing = cursor.fetchone()
+
+    if existing:
+        cursor.execute(
+            """
+            UPDATE email_verifications
+            SET code = %s,
+                verified = 0,
+                expires_at = DATE_ADD(NOW(), INTERVAL %s MINUTE),
+                updated_at = NOW()
+            WHERE email = %s
+            """,
+            (code, EMAIL_CODE_EXPIRE_MINUTES, email),
+        )
+    else:
+        cursor.execute(
+            """
+            INSERT INTO email_verifications
+                (email, code, verified, expires_at, created_at, updated_at)
+            VALUES
+                (%s, %s, 0, DATE_ADD(NOW(), INTERVAL %s MINUTE), NOW(), NOW())
+            """,
+            (email, code, EMAIL_CODE_EXPIRE_MINUTES),
+        )
+
+
+def check_recovery_code(cursor, email: str, code: str):
+    cursor.execute(
+        """
+        SELECT id, code, expires_at
+        FROM email_verifications
+        WHERE email = %s
+        """,
+        (email,),
+    )
+    verification = cursor.fetchone()
+
+    if not verification or verification["code"] != code:
+        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["INVALID_CODE"])
+
+    if verification["expires_at"] <= datetime.now():
+        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["EXPIRED_CODE"])
+
+    return verification
 
 
 def get_connection():
