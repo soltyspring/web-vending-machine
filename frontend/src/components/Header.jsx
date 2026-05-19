@@ -42,7 +42,7 @@ export default function Header() {
           {isLoggedIn ? (
             <>
               <Link
-                to="/templates"
+                to="/mypage"
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5"
               >
                 마이페이지

@@ -9,6 +9,7 @@ import TemplatesPage from "./pages/TemplatesPage";
 import ShoppingTemplateStore from "./pages/ShoppingTemplateStore";
 import WeddingTemplate from "./pages/WeddingTemplate";
 import PuckEditorPage from "./pages/PuckEditorPage";
+import MyPage from "./pages/MyPage";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/templates/shopping" element={<ShoppingTemplateStore />} />
           <Route path="/templates/wedding" element={<WeddingTemplate />} />
           <Route path="/ai-editor" element={<PuckEditorPage />} />
+          <Route path="/mypage" element={<MyPage />} />
         </Routes>
       </main>
     </div>
