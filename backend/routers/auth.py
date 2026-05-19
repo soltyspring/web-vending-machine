@@ -132,7 +132,7 @@ def mask_username(username: str) -> str:
 
     return username[:visible_count] + "*" * (length - visible_count)
 
-
+#이런
 def mask_email(email: str) -> str:
     local_part, domain = email.split("@", 1)
     return f"{mask_username(local_part)}@{domain}"
@@ -166,6 +166,7 @@ def save_recovery_code(cursor, email: str, code: str):
         )
 
 
+#5-19일 수정 이메일 인증 시간 오류 수정
 def check_recovery_code(cursor, email: str, code: str):
     cursor.execute(
         """
@@ -177,11 +178,35 @@ def check_recovery_code(cursor, email: str, code: str):
     )
     verification = cursor.fetchone()
 
-    if not verification or verification["code"] != code:
-        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["INVALID_CODE"])
+    if not verification:
+        raise HTTPException(
+            status_code=400,
+            detail=COMMON_MESSAGES["EXPIRED_CODE"]
+        )
 
-    if verification["expires_at"] <= datetime.now():
-        raise HTTPException(status_code=400, detail=COMMON_MESSAGES["EXPIRED_CODE"])
+    if verification["code"] != code:
+        raise HTTPException(
+            status_code=400,
+            detail=COMMON_MESSAGES["INVALID_CODE"]
+        )
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM email_verifications
+        WHERE id = %s
+          AND expires_at > NOW()
+        """,
+        (verification["id"],),
+    )
+
+    valid = cursor.fetchone()
+
+    if not valid:
+        raise HTTPException(
+            status_code=400,
+            detail=COMMON_MESSAGES["EXPIRED_CODE"]
+        )
 
     return verification
 
