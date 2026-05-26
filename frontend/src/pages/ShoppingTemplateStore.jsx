@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Render } from "@puckeditor/core";
 import ShoppingTemplateSetupModal from "../components/ShoppingTemplateSetupModal";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -8,7 +9,10 @@ import {
   extractErrorMessage,
   parseJsonResponse,
 } from "../lib/api";
-import { createShoppingPuckDataFromTemplate } from "../puck/shoppingPuckConfig";
+import {
+  createShoppingPuckDataFromTemplate,
+  shoppingPuckConfig,
+} from "../puck/shoppingPuckConfig";
 
 const topStores = ["STORE", "BEAUTY", "SPORTS", "OUTLET", "BOUTIQUE", "KICKS", "KIDS", "USED", "SNAP"];
 const subTabs = ["콘텐츠", "추천", "랭킹", "세일", "신상", "브랜드", "기획전", "후기"];
@@ -329,6 +333,7 @@ export default function ShoppingTemplateStore() {
     productImageSizeByScale[useGeneratedTheme ? generatedTheme.productImageScale : "medium"];
   const heroTitleLines = splitTitle(templateContent.heroTitle || defaultContent.heroTitle);
   const heroCards = makeHeroCards(templateContent, theme);
+  const renderedPuckData = createShoppingPuckDataFromTemplate(templateContent);
   const brandTiles = (templateContent.marqueeItems?.length ? templateContent.marqueeItems : defaultContent.marqueeItems)
     .flatMap((item, index) => [
       `${item} EDIT ${index + 1}`,
@@ -692,7 +697,8 @@ export default function ShoppingTemplateStore() {
           </div>
         ) : null}
 
-        <div className={showSetupModal ? "flex min-h-full min-w-[1760px]" : "min-h-full"}>
+        {showSetupModal ? (
+        <div className="flex min-h-full min-w-[1760px]">
           <div className={showSetupModal ? "min-w-[1340px] flex-1" : ""}>
             <header className="border-b border-white/10 bg-[#101113]" style={generatedHeaderStyle}>
               <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-5 py-3 text-sm font-bold md:px-8">
@@ -1013,6 +1019,9 @@ export default function ShoppingTemplateStore() {
             />
           ) : null}
         </div>
+        ) : (
+          <Render config={shoppingPuckConfig} data={renderedPuckData} />
+        )}
       </div>
 
       {isSitePreviewMode ? (
