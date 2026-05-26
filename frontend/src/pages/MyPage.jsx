@@ -44,6 +44,7 @@ export default function MyPage() {
   const [usage, setUsage] = useState(null);
   const [isLoadingSites, setIsLoadingSites] = useState(false);
   const [renamingSiteId, setRenamingSiteId] = useState(null);
+  const [deletingSiteId, setDeletingSiteId] = useState(null);
   const [siteError, setSiteError] = useState("");
 
   useEffect(() => {
@@ -109,6 +110,33 @@ export default function MyPage() {
       setSiteError(error.message || "템플릿 이름 변경에 실패했습니다.");
     } finally {
       setRenamingSiteId(null);
+    }
+  };
+
+  const handleDeleteSite = async (siteId, siteName) => {
+    const confirmed = window.confirm(`"${siteName}" 웹페이지를 삭제할까요?`);
+    if (!confirmed) return;
+
+    setDeletingSiteId(siteId);
+    setSiteError("");
+
+    try {
+      const response = await fetch(createApiUrl(`/api/sites/${siteId}`), {
+        method: "DELETE",
+        headers: createAuthHeaders(accessToken),
+      });
+      const payload = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(extractErrorMessage(payload, "웹페이지 삭제에 실패했습니다."));
+      }
+
+      setSites((prev) => prev.filter((site) => site.siteId !== siteId));
+      setUsage(payload.usage || null);
+    } catch (error) {
+      setSiteError(error.message || "웹페이지 삭제에 실패했습니다.");
+    } finally {
+      setDeletingSiteId(null);
     }
   };
 
@@ -263,7 +291,7 @@ export default function MyPage() {
                         <button
                           type="button"
                           onClick={() => handleRenameSite(site.siteId, site.siteName)}
-                          disabled={renamingSiteId === site.siteId}
+                          disabled={renamingSiteId === site.siteId || deletingSiteId === site.siteId}
                           className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-950 hover:text-slate-950 disabled:cursor-wait disabled:opacity-60"
                         >
                           {renamingSiteId === site.siteId ? "변경 중..." : "이름 변경"}
@@ -280,6 +308,14 @@ export default function MyPage() {
                         >
                           미리보기
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSite(site.siteId, site.siteName)}
+                          disabled={deletingSiteId === site.siteId || renamingSiteId === site.siteId}
+                          className="rounded-2xl border border-rose-200 bg-white px-5 py-3 text-sm font-black text-rose-600 transition hover:border-rose-500 hover:bg-rose-50 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {deletingSiteId === site.siteId ? "삭제 중..." : "삭제"}
+                        </button>
                       </div>
                     </article>
                   ))}

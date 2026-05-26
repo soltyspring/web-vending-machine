@@ -291,6 +291,10 @@ def delete_site(site_id: int, user_no: int = Depends(get_current_user_no)):
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="저장된 웹페이지를 찾을 수 없습니다.")
 
-        return {"message": "웹페이지가 삭제되었습니다."}
+        total_count = count_user_sites(cursor, user_no)
+        return {
+            "message": "웹페이지가 삭제되었습니다.",
+            "usage": build_usage_meta(total_count),
+        }
     finally:
         conn.close()
