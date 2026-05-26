@@ -303,7 +303,7 @@ export default function MyPage() {
                           다시 열기
                         </Link>
                         <Link
-                          to={`/ai-editor/${site.siteId}`}
+                          to={`/sites/${site.siteId}`}
                           className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
                         >
                           미리보기

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Puck, Render } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   createApiUrl,
@@ -24,6 +24,7 @@ export default function PuckEditorPage() {
   const [siteName, setSiteName] = useState("Puck JSON 편집 테스트");
   const [isLoading, setIsLoading] = useState(Boolean(siteId));
   const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState("");
   const [notice, setNotice] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -85,6 +86,7 @@ export default function PuckEditorPage() {
         }
 
         setNotice("Puck 편집 내용이 DB에 저장되었습니다.");
+        setLastSavedAt(new Date().toLocaleString());
       } catch (error) {
         setErrorMessage(error.message || "Puck 편집 내용을 저장하지 못했습니다.");
         return;
@@ -158,6 +160,37 @@ export default function PuckEditorPage() {
               {notice}
             </p>
           ) : null}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded-full px-4 py-2 text-xs font-black ${
+                isSaving
+                  ? "bg-blue-50 text-blue-600"
+                  : errorMessage
+                    ? "bg-rose-50 text-rose-600"
+                    : lastSavedAt
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {isSaving
+                ? "저장 중..."
+                : errorMessage
+                  ? "저장 실패"
+                  : lastSavedAt
+                    ? `마지막 저장: ${lastSavedAt}`
+                    : siteId
+                      ? "Publish를 누르면 DB에 저장됩니다."
+                      : "미리보기 전용 에디터입니다."}
+            </span>
+            {siteId ? (
+              <Link
+                to={`/sites/${siteId}`}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+              >
+                완성 페이지 보기
+              </Link>
+            ) : null}
+          </div>
         </div>
       </div>
 

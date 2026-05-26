@@ -32,6 +32,22 @@ const defaultSubNavigation = ["콘텐츠", "추천", "랭킹", "세일", "신상
   label,
 }));
 
+const defaultQuickFilters = ["전체", "여성", "남성", "잡화", "스니커즈", "라이프"].map((label) => ({
+  label,
+}));
+
+const defaultFooterMenus = ["추천", "랭킹", "세일", "신상"].map((label) => ({
+  label,
+}));
+
+const defaultFooterServices = ["추천 큐레이션", "브랜드 소개", "상품 리스트", "리뷰"].map((label) => ({
+  label,
+}));
+
+const defaultFooterSupport = ["공지사항", "고객센터", "이용약관", "개인정보처리방침"].map((label) => ({
+  label,
+}));
+
 export const shoppingPuckConfig = {
   components: {
     CommerceHeader: {
@@ -260,6 +276,15 @@ export const shoppingPuckConfig = {
       fields: {
         eyebrow: { type: "text" },
         title: { type: "text" },
+        viewAllText: { type: "text" },
+        filters: {
+          type: "array",
+          min: 0,
+          max: 10,
+          getItemSummary: (item) => item.label || "필터",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "필터" },
+        },
         backgroundColor: { type: "text" },
         imageColor: { type: "text" },
         products: {
@@ -286,9 +311,11 @@ export const shoppingPuckConfig = {
         title: "지금 가장 많이 보는 아이템",
         backgroundColor: "#f6f6f7",
         imageColor: "#d8d8d5",
+        viewAllText: "View All",
+        filters: defaultQuickFilters,
         products: defaultProducts,
       },
-      render: ({ eyebrow, title, backgroundColor, imageColor, products = [] }) => (
+      render: ({ eyebrow, title, viewAllText, filters = defaultQuickFilters, backgroundColor, imageColor, products = [] }) => (
         <section className="px-5 py-10 text-black md:px-8" style={{ backgroundColor }}>
           <div className="mx-auto w-full max-w-[1400px]">
             <div className="flex items-end justify-between">
@@ -296,12 +323,12 @@ export const shoppingPuckConfig = {
                 <p className="text-xs font-black tracking-[0.16em] text-black/45">{eyebrow}</p>
                 <h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">{title}</h2>
               </div>
-              <span className="text-sm font-bold text-black/50 underline underline-offset-4">View All</span>
+              <span className="text-sm font-bold text-black/50 underline underline-offset-4">{viewAllText}</span>
             </div>
-            <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2">
-              {["전체", "남성", "여성", "잡화", "스니커즈", "디지털"].map((item, index) => (
-                <span key={item} className={`rounded-full px-4 py-2 text-sm font-bold ${index === 0 ? "bg-black text-white" : "bg-white text-black/60"}`}>
-                  {item}
+            <div className="scrollbar-hide mt-6 flex items-center gap-2 overflow-x-auto pb-2">
+              {filters.map((item, index) => (
+                <span key={`${item.label}-${index}`} className={`rounded-full px-4 py-2 text-sm font-bold ${index === 0 ? "bg-black text-white" : "bg-white text-black/60"}`}>
+                  {item.label}
                 </span>
               ))}
             </div>
@@ -331,8 +358,17 @@ export const shoppingPuckConfig = {
 
     CommercePromoSection: {
       fields: {
+        eyebrow: { type: "text" },
         title: { type: "text" },
         description: { type: "textarea" },
+        tags: {
+          type: "array",
+          min: 0,
+          max: 8,
+          getItemSummary: (item) => item.label || "태그",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "태그" },
+        },
         backgroundColor: { type: "text" },
         products: {
           type: "array",
@@ -352,18 +388,29 @@ export const shoppingPuckConfig = {
         },
       },
       defaultProps: {
+        eyebrow: "SPECIAL CURATION",
         title: "이번 주 추천 브랜드",
         description: "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+        tags: defaultSubNavigation.slice(1, 5),
         backgroundColor: "#111214",
         products: defaultProducts.slice(0, 4),
       },
-      render: ({ title, description, backgroundColor, products = [] }) => (
+      render: ({ eyebrow, title, description, tags = [], backgroundColor, products = [] }) => (
         <section className="bg-[#f6f6f7] px-5 py-8 text-black md:px-8">
           <div className="mx-auto grid w-full max-w-[1400px] overflow-hidden rounded-3xl text-white shadow-2xl shadow-black/10 lg:grid-cols-[1.1fr_0.9fr]" style={{ backgroundColor }}>
             <div className="bg-black/35 p-8 md:p-12">
-              <p className="text-xs font-black tracking-[0.18em] text-white/55">SPECIAL CURATION</p>
+              <p className="text-xs font-black tracking-[0.18em] text-white/55">{eyebrow}</p>
               <h2 className="mt-4 max-w-[560px] text-4xl font-black leading-[0.98] tracking-[-0.06em] md:text-6xl">{title}</h2>
               <p className="mt-5 max-w-[520px] text-sm font-semibold leading-7 text-white/75">{description}</p>
+              {tags.length ? (
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {tags.map((item, index) => (
+                    <span key={`${item.label}-${index}`} className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white/80">
+                      {item.label}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="grid grid-cols-2 gap-px bg-white/10 p-px">
               {(products.length ? products : defaultProducts.slice(0, 4)).map((item, index) => (
@@ -381,6 +428,7 @@ export const shoppingPuckConfig = {
 
     CommerceReviewSection: {
       fields: {
+        eyebrow: { type: "text" },
         title: { type: "text" },
         description: { type: "textarea" },
         backgroundColor: { type: "text" },
@@ -402,16 +450,17 @@ export const shoppingPuckConfig = {
         },
       },
       defaultProps: {
+        eyebrow: "EDITORIAL NOTE",
         title: "고객들이 남긴 이야기",
         description: "브랜드의 분위기와 상품 경험을 리뷰로 보여줍니다.",
         backgroundColor: "#111214",
         reviews: defaultReviews,
       },
-      render: ({ title, description, backgroundColor, reviews = [] }) => (
+      render: ({ eyebrow, title, description, backgroundColor, reviews = [] }) => (
         <section className="border-t border-white/10 px-5 py-10 text-white md:px-8" style={{ backgroundColor }}>
           <div className="mx-auto grid w-full max-w-[1400px] gap-6 lg:grid-cols-[1.3fr_0.7fr]">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/10">
-              <p className="text-xs font-black tracking-[0.16em] text-white/45">EDITORIAL NOTE</p>
+              <p className="text-xs font-black tracking-[0.16em] text-white/45">{eyebrow}</p>
               <h2 className="mt-3 text-3xl font-black tracking-[-0.05em]">{title}</h2>
               <p className="mt-4 whitespace-pre-line text-sm leading-7 text-white/75">{description}</p>
             </div>
@@ -426,6 +475,99 @@ export const shoppingPuckConfig = {
             </div>
           </div>
         </section>
+      ),
+    },
+    CommerceFooter: {
+      fields: {
+        brandName: { type: "text" },
+        description: { type: "textarea" },
+        menuTitle: { type: "text" },
+        menus: {
+          type: "array",
+          min: 0,
+          max: 8,
+          getItemSummary: (item) => item.label || "메뉴",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "메뉴" },
+        },
+        serviceTitle: { type: "text" },
+        services: {
+          type: "array",
+          min: 0,
+          max: 8,
+          getItemSummary: (item) => item.label || "서비스",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "서비스" },
+        },
+        supportTitle: { type: "text" },
+        supports: {
+          type: "array",
+          min: 0,
+          max: 8,
+          getItemSummary: (item) => item.label || "지원",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "지원" },
+        },
+        copyrightText: { type: "text" },
+        backgroundColor: { type: "text" },
+      },
+      defaultProps: {
+        brandName: "MOOD SHOP",
+        description: "Web Vending Machine에서 제공하는 커머스형 쇼핑몰 템플릿입니다.",
+        menuTitle: "MENU",
+        menus: defaultFooterMenus,
+        serviceTitle: "SERVICE",
+        services: defaultFooterServices,
+        supportTitle: "SUPPORT",
+        supports: defaultFooterSupport,
+        copyrightText: "© 2026 Web Vending Machine. All rights reserved.",
+        backgroundColor: "#000000",
+      },
+      render: ({
+        brandName,
+        description,
+        menuTitle,
+        menus = defaultFooterMenus,
+        serviceTitle,
+        services = defaultFooterServices,
+        supportTitle,
+        supports = defaultFooterSupport,
+        copyrightText,
+        backgroundColor,
+      }) => (
+        <footer className="border-t border-white/10 px-5 py-12 text-white md:px-8" style={{ backgroundColor }}>
+          <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 md:flex-row md:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-xs font-black text-black">WVM</div>
+                <div>
+                  <p className="text-lg font-black tracking-[-0.04em]">{brandName}</p>
+                  <p className="text-[11px] font-bold tracking-[0.16em] text-white/40">CURATED COMMERCE TEMPLATE</p>
+                </div>
+              </div>
+              <p className="mt-4 max-w-[360px] whitespace-pre-line text-[13px] font-medium leading-7 text-white/55">{description}</p>
+            </div>
+            <div className="flex flex-wrap gap-12">
+              {[
+                { title: menuTitle, items: menus },
+                { title: serviceTitle, items: services },
+                { title: supportTitle, items: supports },
+              ].map((group) => (
+                <div key={group.title}>
+                  <p className="text-[11px] font-bold tracking-[0.16em] text-white/35">{group.title}</p>
+                  <div className="mt-3 flex flex-col gap-2 text-[13px] font-medium text-white/60">
+                    {group.items.map((item, index) => (
+                      <span key={`${item.label}-${index}`}>{item.label}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mx-auto mt-10 w-full max-w-[1400px] border-t border-white/10 pt-5">
+            <p className="text-[11px] text-white/30">{copyrightText}</p>
+          </div>
+        </footer>
       ),
     },
   },
@@ -521,6 +663,8 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
         type: "CommerceProductGrid",
         props: {
           id: "commerce-products",
+          viewAllText: content.viewAllText || "View All",
+          filters: (content.quickMenus?.length ? content.quickMenus : defaultQuickFilters.map((item) => item.label)).map((label) => ({ label })),
           eyebrow: content.featuredEyebrow || "베스트셀러",
           title: content.featuredTitle || "지금 가장 많이 보는 아이템",
           backgroundColor: surfaceColor,
@@ -532,8 +676,10 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
         type: "CommercePromoSection",
         props: {
           id: "commerce-promo",
+          eyebrow: content.bannerEyebrow || "SPECIAL CURATION",
           title: content.bannerTitle || "이번 주 추천 브랜드",
           description: content.bannerDescription || "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+          tags: (content.navItems?.length ? content.navItems : defaultSubNavigation.slice(1, 5).map((item) => item.label)).map((label) => ({ label })),
           backgroundColor,
           products: products.slice(0, 4),
         },
@@ -542,10 +688,27 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
         type: "CommerceReviewSection",
         props: {
           id: "commerce-reviews",
+          eyebrow: content.aboutEyebrow || "EDITORIAL NOTE",
           title: content.aboutTitle || "고객들이 남긴 이야기",
           description: content.aboutDescription || "브랜드의 분위기와 상품 경험을 리뷰로 보여줍니다.",
           backgroundColor,
           reviews,
+        },
+      },
+      {
+        type: "CommerceFooter",
+        props: {
+          id: "commerce-footer",
+          brandName,
+          description: content.footerDescription || "Web Vending Machine에서 제공하는 커머스형 쇼핑몰 템플릿입니다.",
+          menuTitle: "MENU",
+          menus: defaultFooterMenus,
+          serviceTitle: "SERVICE",
+          services: defaultFooterServices,
+          supportTitle: "SUPPORT",
+          supports: defaultFooterSupport,
+          copyrightText: "© 2026 Web Vending Machine. All rights reserved.",
+          backgroundColor: "#000000",
         },
       },
     ],
