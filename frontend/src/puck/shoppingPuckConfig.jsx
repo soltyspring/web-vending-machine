@@ -20,52 +20,109 @@ const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(value || "");
 
 const safeColor = (value, fallback) => (isHexColor(value) ? value : fallback);
 
+const defaultTopNavigation = ["STORE", "BEAUTY", "SPORTS", "OUTLET", "BOUTIQUE", "KICKS", "KIDS", "USED", "SNAP"].map((label) => ({
+  label,
+}));
+
+const defaultUtilityNavigation = ["오프라인 스토어", "검색", "좋아요", "마이", "장바구니"].map((label) => ({
+  label,
+}));
+
+const defaultSubNavigation = ["콘텐츠", "추천", "랭킹", "세일", "신상", "브랜드", "기획전", "후기"].map((label) => ({
+  label,
+}));
+
 export const shoppingPuckConfig = {
   components: {
     CommerceHeader: {
       fields: {
         brandName: { type: "text" },
         notice: { type: "text" },
+        badgeLabel: { type: "text" },
+        topNavigation: {
+          type: "array",
+          min: 1,
+          max: 12,
+          getItemSummary: (item) => item.label || "상단 메뉴",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "MENU" },
+        },
+        utilityNavigation: {
+          type: "array",
+          min: 0,
+          max: 8,
+          getItemSummary: (item) => item.label || "유틸 메뉴",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "메뉴" },
+        },
+        loginText: { type: "text" },
+        signupText: { type: "text" },
+        subNavigation: {
+          type: "array",
+          min: 1,
+          max: 12,
+          getItemSummary: (item) => item.label || "하위 탭",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "탭" },
+        },
+        activeSubNavigation: { type: "text" },
         backgroundColor: { type: "text" },
         pointColor: { type: "text" },
       },
       defaultProps: {
         brandName: "MOOD SHOP",
         notice: "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
+        badgeLabel: "오늘의 추천 셀렉션",
+        topNavigation: defaultTopNavigation,
+        utilityNavigation: defaultUtilityNavigation,
+        loginText: "로그인",
+        signupText: "회원가입",
+        subNavigation: defaultSubNavigation,
+        activeSubNavigation: "추천",
         backgroundColor: "#101113",
         pointColor: "#3868ff",
       },
-      render: ({ brandName, notice, backgroundColor, pointColor }) => (
+      render: ({
+        brandName,
+        notice,
+        badgeLabel,
+        topNavigation = defaultTopNavigation,
+        utilityNavigation = defaultUtilityNavigation,
+        loginText,
+        signupText,
+        subNavigation = defaultSubNavigation,
+        activeSubNavigation,
+        backgroundColor,
+        pointColor,
+      }) => (
         <header className="border-b border-white/10 text-white" style={{ backgroundColor }}>
           <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-5 py-3 text-sm font-black md:px-8">
-            <div className="flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/80">
+            <div className="scrollbar-hide flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/80">
               <span className="text-lg">☰</span>
-              {["STORE", "BEAUTY", "SPORTS", "OUTLET", "BOUTIQUE", "KICKS", "KIDS", "USED", "SNAP"].map((item) => (
-                <span key={item}>{item}</span>
+              {topNavigation.map((item, index) => (
+                <span key={`${item.label}-${index}`}>{item.label}</span>
               ))}
             </div>
             <div className="hidden items-center gap-4 text-xs text-white/70 lg:flex">
-              <span>오프라인 스토어</span>
-              <span>검색</span>
-              <span>좋아요</span>
-              <span>마이</span>
-              <span>장바구니</span>
-              <span className="rounded-md border border-white/15 px-3 py-1.5">로그인</span>
-              <span className="rounded-md bg-white px-3 py-1.5 text-black">회원가입</span>
+              {utilityNavigation.map((item, index) => (
+                <span key={`${item.label}-${index}`}>{item.label}</span>
+              ))}
+              <span className="rounded-md border border-white/15 px-3 py-1.5">{loginText}</span>
+              <span className="rounded-md bg-white px-3 py-1.5 text-black">{signupText}</span>
             </div>
           </div>
           <div className="mx-auto flex w-full max-w-[1400px] items-center gap-3 px-5 py-3 md:px-8">
             <div className="rounded-md px-3 py-2 text-xs font-black text-white" style={{ backgroundColor: pointColor }}>
-              오늘의 추천 셀렉션
+              {badgeLabel}
             </div>
             <div className="flex-1 rounded-md bg-[#f3f4f6] px-4 py-3 text-sm font-semibold text-[#121212]">
               {notice}
             </div>
           </div>
-          <nav className="mx-auto flex w-full max-w-[1400px] items-center gap-5 overflow-x-auto px-5 pb-3 text-sm font-bold text-white/55 md:px-8">
-            {["콘텐츠", "추천", "랭킹", "세일", "신상", "브랜드", "기획전", "후기"].map((item) => (
-              <span key={item} className={item === "추천" ? "border-b-2 border-white pb-2 text-white" : "pb-2"}>
-                {item}
+          <nav className="scrollbar-hide mx-auto flex w-full max-w-[1400px] items-center gap-5 overflow-x-auto px-5 pb-3 text-sm font-bold text-white/55 md:px-8">
+            {subNavigation.map((item, index) => (
+              <span key={`${item.label}-${index}`} className={item.label === activeSubNavigation ? "border-b-2 border-white pb-2 text-white" : "pb-2"}>
+                {item.label}
               </span>
             ))}
           </nav>

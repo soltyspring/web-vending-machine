@@ -696,7 +696,7 @@ export default function ShoppingTemplateStore() {
           <div className={showSetupModal ? "min-w-[1340px] flex-1" : ""}>
             <header className="border-b border-white/10 bg-[#101113]" style={generatedHeaderStyle}>
               <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-5 py-3 text-sm font-bold md:px-8">
-                <div className="flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/75">
+                <div className="scrollbar-hide flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/75">
                   <span className="text-lg">☰</span>
                   {topStores.map((item) => (
                     <span key={item} className="transition hover:text-white">
@@ -728,7 +728,7 @@ export default function ShoppingTemplateStore() {
                 </div>
               </div>
 
-              <div className="mx-auto flex w-full max-w-[1400px] items-center gap-5 overflow-x-auto px-5 pb-3 text-sm font-semibold text-white/55 md:px-8">
+              <div className="scrollbar-hide mx-auto flex w-full max-w-[1400px] items-center gap-5 overflow-x-auto px-5 pb-3 text-sm font-semibold text-white/55 md:px-8">
                 {subTabs.map((item) => (
                   <button
                     key={item}
