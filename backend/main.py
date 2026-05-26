@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from ai.schemas import TemplateGenerateRequest, TemplateGenerateResponse
 from ai.shopping_service import generate_shopping_template
 from routers.auth import router as auth_router
+from routers.sites import router as sites_router
 
 load_dotenv()
 
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(sites_router)
 
 @app.get("/")
 def root():

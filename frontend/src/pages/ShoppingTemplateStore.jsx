@@ -1,6 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ShoppingTemplateSetupModal from "../components/ShoppingTemplateSetupModal";
+import { useAuth } from "../context/AuthContext";
+import {
+  createApiUrl,
+  createAuthHeaders,
+  extractErrorMessage,
+  parseJsonResponse,
+} from "../lib/api";
+import { createShoppingPuckDataFromTemplate } from "../puck/shoppingPuckConfig";
 
 const topStores = ["STORE", "BEAUTY", "SPORTS", "OUTLET", "BOUTIQUE", "KICKS", "KIDS", "USED", "SNAP"];
 const subTabs = ["콘텐츠", "추천", "랭킹", "세일", "신상", "브랜드", "기획전", "후기"];
@@ -226,9 +234,15 @@ const spacingByDensity = {
 };
 
 export default function ShoppingTemplateStore() {
+  const navigate = useNavigate();
+  const { accessToken, isLoggedIn } = useAuth();
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingSite, setIsSavingSite] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [saveSiteName, setSaveSiteName] = useState("");
+  const [usage, setUsage] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [appliedMood, setAppliedMood] = useState("minimal");
   const [activeTab, setActiveTab] = useState("추천");
@@ -258,6 +272,26 @@ export default function ShoppingTemplateStore() {
       if (el) el.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const loadUsage = async () => {
+      try {
+        const response = await fetch(createApiUrl("/api/sites"), {
+          headers: createAuthHeaders(accessToken),
+        });
+        const payload = await parseJsonResponse(response);
+        if (response.ok) {
+          setUsage(payload.usage || null);
+        }
+      } catch {
+        setUsage(null);
+      }
+    };
+
+    loadUsage();
+  }, [accessToken, isLoggedIn]);
 
   const currentMood = showSetupModal ? setupForm.mood : appliedMood;
   const theme = themeByMood[currentMood] || themeByMood.minimal;
@@ -323,7 +357,7 @@ export default function ShoppingTemplateStore() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://localhost:8000/generate-template", {
+      const response = await fetch(createApiUrl("/generate-template"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -344,11 +378,62 @@ export default function ShoppingTemplateStore() {
       setAppliedMood(setupForm.mood);
       setIsGenerated(true);
       setIsSitePreviewMode(false);
+      setSaveSiteName(data.brandName || setupForm.siteName);
+      setSaveMessage("");
       setShowSetupModal(false);
     } catch (error) {
       setErrorMessage(error.message || "초안 생성에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveGeneratedSite = async () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    setIsSavingSite(true);
+    setErrorMessage("");
+    setSaveMessage("");
+
+    try {
+      const trimmedSiteName = saveSiteName.trim();
+      if (!trimmedSiteName) {
+        throw new Error("템플릿 이름을 입력해 주세요.");
+      }
+
+      const puckData = createShoppingPuckDataFromTemplate(templateContent);
+      const response = await fetch(createApiUrl("/api/sites"), {
+        method: "POST",
+        headers: createAuthHeaders(accessToken, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          templateType: "shopping",
+          siteName: trimmedSiteName,
+          aiRequest: {
+            templateId: "shopping",
+            ...setupForm,
+          },
+          aiResponse: templateContent,
+          puckData,
+        }),
+      });
+      const payload = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(extractErrorMessage(payload, "웹페이지 저장에 실패했습니다."));
+      }
+
+      setUsage(payload.usage || usage);
+      setSaveMessage("마이페이지에 저장되었습니다.");
+      navigate(`/ai-editor/${payload.siteId}`);
+    } catch (error) {
+      setErrorMessage(error.message || "웹페이지 저장에 실패했습니다.");
+    } finally {
+      setIsSavingSite(false);
     }
   };
 
@@ -551,8 +636,18 @@ export default function ShoppingTemplateStore() {
               <div>
                 <p className="text-xs font-black tracking-[0.16em] text-black/35">GENERATED DRAFT</p>
                 <p className="text-sm font-black">{templateContent.brandName} 초안 생성 완료</p>
+                <p className="mt-1 text-xs font-semibold text-black/45">
+                  무료 생성 {usage ? `${usage.usedCount}/${usage.freeLimit}회 사용` : "최대 5회"}
+                </p>
               </div>
               <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={saveSiteName}
+                  onChange={(event) => setSaveSiteName(event.target.value)}
+                  placeholder="저장할 템플릿 이름"
+                  className="h-9 w-48 rounded-full border border-black/10 bg-white px-4 text-xs font-bold outline-none transition focus:border-black"
+                />
                 <button
                   type="button"
                   onClick={handleStart}
@@ -567,8 +662,33 @@ export default function ShoppingTemplateStore() {
                 >
                   내 페이지로 보기
                 </button>
+                <button
+                  type="button"
+                  onClick={handleSaveGeneratedSite}
+                  disabled={isSavingSite || usage?.canCreate === false}
+                  className="rounded-full bg-[#3868ff] px-4 py-2 text-xs font-black text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {usage?.canCreate === false
+                    ? "무료 횟수 소진"
+                    : isSavingSite
+                      ? "저장 중..."
+                      : "저장하고 편집하기"}
+                </button>
               </div>
             </div>
+            {saveMessage || errorMessage ? (
+              <div className="mx-auto mt-3 w-full max-w-[1400px]">
+                <p
+                  className={`rounded-2xl px-4 py-3 text-sm font-bold ${
+                    errorMessage
+                      ? "border border-rose-200 bg-rose-50 text-rose-600"
+                      : "border border-emerald-200 bg-emerald-50 text-emerald-600"
+                  }`}
+                >
+                  {errorMessage || saveMessage}
+                </p>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

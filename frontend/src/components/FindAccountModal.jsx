@@ -26,6 +26,34 @@ const passwordPattern =
 const getPayloadMessage = (payload, fallback) =>
   payload?.message || extractErrorMessage(payload, fallback);
 
+const EyeIcon = ({ open }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-5 w-5"
+    aria-hidden="true"
+  >
+    {open ? (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ) : (
+      <>
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-6.5 0-10-7-10-7a18.45 18.45 0 0 1 4.22-5.06" />
+        <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19" />
+        <path d="M14.12 14.12A3 3 0 1 1 9.88 9.88" />
+        <line x1="2" y1="2" x2="22" y2="22" />
+      </>
+    )}
+  </svg>
+);
+
 export default function FindAccountModal({ open, onClose }) {
   const [tab, setTab] = useState("id");
 
@@ -48,6 +76,8 @@ export default function FindAccountModal({ open, onClose }) {
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showNewPasswordConfirm, setShowNewPasswordConfirm] = useState(false);
   const [resetCompleted, setResetCompleted] = useState(false);
 
   // 2026-05-13 단계별 로딩/메시지/필드 에러 상태 추가
@@ -78,6 +108,8 @@ export default function FindAccountModal({ open, onClose }) {
       setResetToken("");
       setNewPassword("");
       setNewPasswordConfirm("");
+      setShowNewPassword(false);
+      setShowNewPasswordConfirm(false);
       setResetCompleted(false);
 
       setLoadingKey("");
@@ -86,6 +118,16 @@ export default function FindAccountModal({ open, onClose }) {
       setFieldErrors({});
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!message) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setMessage("");
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [message]);
 
   if (!open) return null;
 
@@ -131,6 +173,8 @@ export default function FindAccountModal({ open, onClose }) {
     setResetToken("");
     setNewPassword("");
     setNewPasswordConfirm("");
+    setShowNewPassword(false);
+    setShowNewPasswordConfirm(false);
     setResetCompleted(false);
     clearNotice();
   };
@@ -141,6 +185,8 @@ export default function FindAccountModal({ open, onClose }) {
     setResetToken("");
     setNewPassword("");
     setNewPasswordConfirm("");
+    setShowNewPassword(false);
+    setShowNewPasswordConfirm(false);
     setFieldErrors((prev) => ({ ...prev, resetCode: "" }));
     setServerError("");
   };
@@ -493,6 +539,12 @@ export default function FindAccountModal({ open, onClose }) {
 
             {maskedUsername ? (
               <div className="space-y-4 rounded-2xl border border-slate-200 p-4">
+                <div>
+                  <p className="text-sm font-black text-slate-950">전체 아이디 찾기</p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                    이메일 인증을 완료하면 마스킹되지 않은 전체 아이디를 확인할 수 있습니다.
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={handleSendFindUsernameCode}
@@ -526,12 +578,14 @@ export default function FindAccountModal({ open, onClose }) {
                     <button
                       type="button"
                       onClick={handleVerifyFindUsernameCode}
-                      disabled={isLoading}
+                      disabled={isLoading || Boolean(fullUsername)}
                       className="mt-3 w-full rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
                     >
-                      {loadingKey === "verifyFindUsernameCode"
-                        ? "인증 중..."
-                        : "인증하기"}
+                      {fullUsername
+                        ? "인증완료"
+                        : loadingKey === "verifyFindUsernameCode"
+                          ? "인증 중..."
+                          : "인증하기"}
                     </button>
                   </div>
                 ) : null}
@@ -680,7 +734,15 @@ export default function FindAccountModal({ open, onClose }) {
                       ? "인증 중..."
                       : "인증하기"}
                   </button>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm font-bold text-emerald-700"
+                  >
+                    인증완료
+                  </button>
+                )}
 
                 {resetVerified ? (
                   <div className="space-y-4">
@@ -688,18 +750,29 @@ export default function FindAccountModal({ open, onClose }) {
                       <label className="mb-2 block text-sm font-extrabold text-slate-900">
                         새 비밀번호
                       </label>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(event) => {
-                          setNewPassword(event.target.value);
-                          setFieldErrors((prev) => ({ ...prev, newPassword: "" }));
-                          setServerError("");
-                        }}
-                        placeholder="새 비밀번호를 입력해 주세요"
-                        disabled={isLoading || resetCompleted}
-                        className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-slate-400 disabled:bg-slate-50"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(event) => {
+                            setNewPassword(event.target.value);
+                            setFieldErrors((prev) => ({ ...prev, newPassword: "" }));
+                            setServerError("");
+                          }}
+                          placeholder="새 비밀번호를 입력해 주세요"
+                          disabled={isLoading || resetCompleted}
+                          className="h-12 w-full rounded-2xl border border-slate-200 px-4 pr-12 text-sm outline-none transition focus:border-slate-400 disabled:bg-slate-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword((prev) => !prev)}
+                          disabled={isLoading || resetCompleted}
+                          aria-label={showNewPassword ? "새 비밀번호 숨기기" : "새 비밀번호 표시"}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-500 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <EyeIcon open={showNewPassword} />
+                        </button>
+                      </div>
                       {fieldErrors.newPassword ? (
                         <p className="mt-2 text-xs font-semibold text-rose-600">
                           {fieldErrors.newPassword}
@@ -711,21 +784,32 @@ export default function FindAccountModal({ open, onClose }) {
                       <label className="mb-2 block text-sm font-extrabold text-slate-900">
                         새 비밀번호 확인
                       </label>
-                      <input
-                        type="password"
-                        value={newPasswordConfirm}
-                        onChange={(event) => {
-                          setNewPasswordConfirm(event.target.value);
-                          setFieldErrors((prev) => ({
-                            ...prev,
-                            newPasswordConfirm: "",
-                          }));
-                          setServerError("");
-                        }}
-                        placeholder="새 비밀번호를 다시 입력해 주세요"
-                        disabled={isLoading || resetCompleted}
-                        className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-slate-400 disabled:bg-slate-50"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showNewPasswordConfirm ? "text" : "password"}
+                          value={newPasswordConfirm}
+                          onChange={(event) => {
+                            setNewPasswordConfirm(event.target.value);
+                            setFieldErrors((prev) => ({
+                              ...prev,
+                              newPasswordConfirm: "",
+                            }));
+                            setServerError("");
+                          }}
+                          placeholder="새 비밀번호를 다시 입력해 주세요"
+                          disabled={isLoading || resetCompleted}
+                          className="h-12 w-full rounded-2xl border border-slate-200 px-4 pr-12 text-sm outline-none transition focus:border-slate-400 disabled:bg-slate-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPasswordConfirm((prev) => !prev)}
+                          disabled={isLoading || resetCompleted}
+                          aria-label={showNewPasswordConfirm ? "새 비밀번호 확인 숨기기" : "새 비밀번호 확인 표시"}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-500 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <EyeIcon open={showNewPasswordConfirm} />
+                        </button>
+                      </div>
                       {fieldErrors.newPasswordConfirm ? (
                         <p className="mt-2 text-xs font-semibold text-rose-600">
                           {fieldErrors.newPasswordConfirm}
@@ -750,7 +834,7 @@ export default function FindAccountModal({ open, onClose }) {
                         onClick={onClose}
                         className="w-full rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5"
                       >
-                        로그인하러 가기
+                        비밀번호 재설정
                       </button>
                     )}
                   </div>

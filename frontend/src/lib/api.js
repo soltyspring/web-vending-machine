@@ -45,3 +45,10 @@ export function extractErrorMessage(payload, fallback) {
   return fallback;
 }
 
+export function createAuthHeaders(token, extraHeaders = {}) {
+  return {
+    ...extraHeaders,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+

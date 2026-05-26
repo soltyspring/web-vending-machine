@@ -26,6 +26,7 @@ export default function App() {
           <Route path="/templates/shopping" element={<ShoppingTemplateStore />} />
           <Route path="/templates/wedding" element={<WeddingTemplate />} />
           <Route path="/ai-editor" element={<PuckEditorPage />} />
+          <Route path="/ai-editor/:siteId" element={<PuckEditorPage />} />
           <Route path="/mypage" element={<MyPage />} />
         </Routes>
       </main>

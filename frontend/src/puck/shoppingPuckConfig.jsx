@@ -1,25 +1,119 @@
+const defaultProducts = [
+  { category: "상의", name: "에센셜 로고 스웨트", priceLabel: "69,000원", badge: "BEST" },
+  { category: "아우터", name: "라이트 후드 점퍼", priceLabel: "119,000원", badge: "NEW" },
+  { category: "신발", name: "러너 스니커즈", priceLabel: "98,000원", badge: "" },
+  { category: "팬츠", name: "와이드 데님 팬츠", priceLabel: "79,000원", badge: "BEST" },
+];
+
+const defaultReviews = [
+  { name: "지은", role: "직장인", text: "상품 구성이 깔끔해서 원하는 옷을 찾기 쉬웠어요." },
+  { name: "민서", role: "대학생", text: "색감이 과하지 않고 데일리로 입기 좋아요." },
+  { name: "수진", role: "프리랜서", text: "전체 분위기가 브랜드와 잘 맞아요." },
+];
+
+const textLines = (value) =>
+  String(value || "")
+    .split("\n")
+    .filter(Boolean);
+
+const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(value || "");
+
+const safeColor = (value, fallback) => (isHexColor(value) ? value : fallback);
+
 export const shoppingPuckConfig = {
   components: {
-    HeroSection: {
+    CommerceHeader: {
+      fields: {
+        brandName: { type: "text" },
+        notice: { type: "text" },
+        backgroundColor: { type: "text" },
+        pointColor: { type: "text" },
+      },
+      defaultProps: {
+        brandName: "MOOD SHOP",
+        notice: "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
+        backgroundColor: "#101113",
+        pointColor: "#3868ff",
+      },
+      render: ({ brandName, notice, backgroundColor, pointColor }) => (
+        <header className="border-b border-white/10 text-white" style={{ backgroundColor }}>
+          <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-5 py-3 text-sm font-black md:px-8">
+            <div className="flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/80">
+              <span className="text-lg">☰</span>
+              {["STORE", "BEAUTY", "SPORTS", "OUTLET", "BOUTIQUE", "KICKS", "KIDS", "USED", "SNAP"].map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+            <div className="hidden items-center gap-4 text-xs text-white/70 lg:flex">
+              <span>오프라인 스토어</span>
+              <span>검색</span>
+              <span>좋아요</span>
+              <span>마이</span>
+              <span>장바구니</span>
+              <span className="rounded-md border border-white/15 px-3 py-1.5">로그인</span>
+              <span className="rounded-md bg-white px-3 py-1.5 text-black">회원가입</span>
+            </div>
+          </div>
+          <div className="mx-auto flex w-full max-w-[1400px] items-center gap-3 px-5 py-3 md:px-8">
+            <div className="rounded-md px-3 py-2 text-xs font-black text-white" style={{ backgroundColor: pointColor }}>
+              오늘의 추천 셀렉션
+            </div>
+            <div className="flex-1 rounded-md bg-[#f3f4f6] px-4 py-3 text-sm font-semibold text-[#121212]">
+              {notice}
+            </div>
+          </div>
+          <nav className="mx-auto flex w-full max-w-[1400px] items-center gap-5 overflow-x-auto px-5 pb-3 text-sm font-bold text-white/55 md:px-8">
+            {["콘텐츠", "추천", "랭킹", "세일", "신상", "브랜드", "기획전", "후기"].map((item) => (
+              <span key={item} className={item === "추천" ? "border-b-2 border-white pb-2 text-white" : "pb-2"}>
+                {item}
+              </span>
+            ))}
+          </nav>
+        </header>
+      ),
+    },
+
+    CommerceHeroGrid: {
       fields: {
         badge: { type: "text" },
-        title: { type: "text" },
+        title: { type: "textarea" },
         description: { type: "textarea" },
         primaryButtonText: { type: "text" },
         secondaryButtonText: { type: "text" },
         backgroundColor: { type: "text" },
-        accentColor: { type: "text" },
+        secondaryColor: { type: "text" },
         textColor: { type: "text" },
+        products: {
+          type: "array",
+          min: 3,
+          max: 3,
+          getItemSummary: (item) => item.name || "히어로 상품",
+          arrayFields: {
+            category: { type: "text" },
+            name: { type: "text" },
+            description: { type: "textarea" },
+          },
+          defaultItemProps: {
+            category: "상품",
+            name: "추천 아이템",
+            description: "큐레이션된 스타일을 확인해 보세요.",
+          },
+        },
       },
       defaultProps: {
-        badge: "AI GENERATED",
-        title: "감각적인 데일리 룩",
-        description: "사용자 입력을 바탕으로 만든 쇼핑몰 메인 초안입니다.",
+        badge: "오늘의 추천 컬렉션",
+        title: "매일 입고 싶은\n감각적인 데일리 룩",
+        description: "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
         primaryButtonText: "지금 쇼핑하기",
-        secondaryButtonText: "룩북 보기",
-        backgroundColor: "#111214",
-        accentColor: "#ff7a59",
+        secondaryButtonText: "더 보기",
+        backgroundColor: "#d8d8d5",
+        secondaryColor: "#b8b8b2",
         textColor: "#ffffff",
+        products: defaultProducts.slice(0, 3).map((item) => ({
+          category: item.category,
+          name: item.name,
+          description: "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+        })),
       },
       render: ({
         badge,
@@ -28,50 +122,89 @@ export const shoppingPuckConfig = {
         primaryButtonText,
         secondaryButtonText,
         backgroundColor,
-        accentColor,
+        secondaryColor,
         textColor,
+        products = [],
       }) => (
-        <section
-          className="min-h-[520px] px-8 py-16"
-          style={{
-            background: `linear-gradient(135deg, ${backgroundColor}, ${accentColor})`,
-            color: textColor,
-          }}
-        >
-          <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-[1fr_0.85fr]">
-            <div>
-              <p className="text-xs font-black tracking-[0.22em] opacity-70">{badge}</p>
-              <h1 className="mt-5 max-w-2xl text-6xl font-black leading-[0.95] tracking-[-0.08em]">
-                {title}
-              </h1>
-              <p className="mt-6 max-w-xl whitespace-pre-line text-base font-semibold leading-8 opacity-75">
-                {description}
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <button className="rounded-full bg-white px-5 py-3 text-sm font-black text-black">
-                  {primaryButtonText}
-                </button>
-                <button className="rounded-full border border-white/35 px-5 py-3 text-sm font-black">
-                  {secondaryButtonText}
-                </button>
-              </div>
-            </div>
-            <div className="rounded-[2rem] bg-white/20 p-8 shadow-2xl shadow-black/20">
-              <div className="flex aspect-[4/5] items-center justify-center rounded-[1.5rem] bg-white/20">
-                <div className="h-28 w-28 rounded-3xl bg-white/60" />
-              </div>
-            </div>
+        <section className="bg-black">
+          <div className="mx-auto grid w-full max-w-[1400px] gap-px md:grid-cols-3">
+            {(products.length ? products : defaultProducts.slice(0, 3)).map((item, index) => (
+              <article
+                key={`${item.name}-${index}`}
+                className="relative min-h-[430px] overflow-hidden p-6"
+                style={{
+                  background: `linear-gradient(180deg, ${backgroundColor}, ${secondaryColor})`,
+                  color: textColor,
+                }}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_24%,rgba(255,255,255,0.78),rgba(255,255,255,0.12)_42%,transparent_43%)] opacity-80" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                  <p className="text-xs font-black tracking-[0.15em] text-white/75">
+                    {index === 0 ? badge : item.category}
+                  </p>
+                  <h1 className="mt-2 max-w-[370px] text-[2rem] font-black leading-[1.02] tracking-[-0.06em] md:text-[2.35rem]">
+                    {index === 0
+                      ? textLines(title).map((line) => <span key={line} className="block">{line}</span>)
+                      : item.name}
+                  </h1>
+                  <p className="mt-3 max-w-[340px] text-sm font-semibold leading-6 text-white/80">
+                    {index === 0 ? description : item.description}
+                  </p>
+                  {index === 0 ? (
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-white px-4 py-2 text-xs font-black text-black">{primaryButtonText}</span>
+                      <span className="rounded-full border border-white/30 px-4 py-2 text-xs font-black text-white">{secondaryButtonText}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       ),
     },
 
-    ProductGrid: {
+    BrandTileGrid: {
+      fields: {
+        tiles: {
+          type: "array",
+          min: 1,
+          max: 12,
+          getItemSummary: (item) => item.label || "타일",
+          arrayFields: { label: { type: "text" } },
+          defaultItemProps: { label: "BRAND TILE" },
+        },
+        backgroundColor: { type: "text" },
+        tileColor: { type: "text" },
+      },
+      defaultProps: {
+        tiles: ["신상품 EDIT 1", "MOOD SHOP CURATION 1", "베스트 EDIT 2", "MOOD SHOP CURATION 2"].map((label) => ({ label })),
+        backgroundColor: "#f2f2f3",
+        tileColor: "#ffffff",
+      },
+      render: ({ tiles = [], backgroundColor, tileColor }) => (
+        <section style={{ backgroundColor }}>
+          <div className="mx-auto grid w-full max-w-[1400px] gap-2 px-3 py-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+            {tiles.map((item, index) => (
+              <div
+                key={`${item.label}-${index}`}
+                className="rounded-md border border-black/10 px-4 py-4 text-center text-sm font-black text-black shadow-sm"
+                style={{ backgroundColor: tileColor }}
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </section>
+      ),
+    },
+
+    CommerceProductGrid: {
       fields: {
         eyebrow: { type: "text" },
         title: { type: "text" },
         backgroundColor: { type: "text" },
-        textColor: { type: "text" },
+        imageColor: { type: "text" },
         products: {
           type: "array",
           min: 1,
@@ -92,33 +225,45 @@ export const shoppingPuckConfig = {
         },
       },
       defaultProps: {
-        eyebrow: "CURATED",
-        title: "베스트 상품",
+        eyebrow: "베스트셀러",
+        title: "지금 가장 많이 보는 아이템",
         backgroundColor: "#f6f6f7",
-        textColor: "#111111",
-        products: [],
+        imageColor: "#d8d8d5",
+        products: defaultProducts,
       },
-      render: ({ eyebrow, title, backgroundColor, textColor, products = [] }) => (
-        <section className="px-8 py-16" style={{ backgroundColor, color: textColor }}>
-          <div className="mx-auto max-w-6xl">
-            <p className="text-xs font-black tracking-[0.18em] opacity-45">{eyebrow}</p>
-            <h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">{title}</h2>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {products.map((item, index) => (
+      render: ({ eyebrow, title, backgroundColor, imageColor, products = [] }) => (
+        <section className="px-5 py-10 text-black md:px-8" style={{ backgroundColor }}>
+          <div className="mx-auto w-full max-w-[1400px]">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xs font-black tracking-[0.16em] text-black/45">{eyebrow}</p>
+                <h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">{title}</h2>
+              </div>
+              <span className="text-sm font-bold text-black/50 underline underline-offset-4">View All</span>
+            </div>
+            <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2">
+              {["전체", "남성", "여성", "잡화", "스니커즈", "디지털"].map((item, index) => (
+                <span key={item} className={`rounded-full px-4 py-2 text-sm font-bold ${index === 0 ? "bg-black text-white" : "bg-white text-black/60"}`}>
+                  {item}
+                </span>
+              ))}
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {(products.length ? products : defaultProducts).map((item, index) => (
                 <article key={`${item.name}-${index}`}>
-                  <div className="flex aspect-[4/5] items-center justify-center rounded-3xl bg-black/10 p-4">
-                    <div className={`${index % 2 ? "rounded-full" : "rounded-3xl"} h-20 w-20 bg-white/70`} />
+                  <div className="flex aspect-[4/5] items-center justify-center rounded-md p-3 shadow-sm" style={{ backgroundColor: imageColor }}>
+                    <div className="flex h-full w-full items-center justify-center rounded-md bg-white/35">
+                      <div className={`${index % 2 ? "rounded-full" : "rounded-2xl"} h-20 w-20 bg-white/70`} />
+                    </div>
                   </div>
-                  <div className="mt-4 flex items-center justify-between gap-2">
-                    <p className="text-xs font-black opacity-40">{item.category}</p>
-                    {item.badge ? (
-                      <span className="rounded-full bg-black px-2 py-1 text-[10px] font-black text-white">
-                        {item.badge}
-                      </span>
-                    ) : null}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[11px] font-bold tracking-[0.08em] text-black/40">{item.category}</p>
+                      {item.badge ? <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-bold text-white">{item.badge}</span> : null}
+                    </div>
+                    <p className="mt-1 text-[15px] font-bold leading-5 text-black">{item.name}</p>
+                    <p className="mt-1 text-base font-black text-black">{item.priceLabel}</p>
                   </div>
-                  <h3 className="mt-1 text-lg font-black tracking-[-0.04em]">{item.name}</h3>
-                  <p className="mt-1 text-sm font-black opacity-70">{item.priceLabel}</p>
                 </article>
               ))}
             </div>
@@ -127,78 +272,61 @@ export const shoppingPuckConfig = {
       ),
     },
 
-    BannerSection: {
+    CommercePromoSection: {
       fields: {
-        eyebrow: { type: "text" },
         title: { type: "text" },
         description: { type: "textarea" },
-        buttonText: { type: "text" },
         backgroundColor: { type: "text" },
-        textColor: { type: "text" },
+        products: {
+          type: "array",
+          min: 1,
+          max: 4,
+          getItemSummary: (item) => item.name || "상품",
+          arrayFields: {
+            category: { type: "text" },
+            name: { type: "text" },
+            priceLabel: { type: "text" },
+          },
+          defaultItemProps: {
+            category: "상품",
+            name: "추천 상품",
+            priceLabel: "89,000원",
+          },
+        },
       },
       defaultProps: {
-        eyebrow: "SPECIAL OFFER",
-        title: "이번 주 추천 기획전",
-        description: "브랜드의 핵심 혜택과 메시지를 강조하는 배너입니다.",
-        buttonText: "자세히 보기",
+        title: "이번 주 추천 브랜드",
+        description: "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
         backgroundColor: "#111214",
-        textColor: "#ffffff",
+        products: defaultProducts.slice(0, 4),
       },
-      render: ({ eyebrow, title, description, buttonText, backgroundColor, textColor }) => (
-        <section className="px-8 py-12">
-          <div
-            className="mx-auto max-w-6xl rounded-[2rem] p-10 shadow-2xl shadow-black/10"
-            style={{ backgroundColor, color: textColor }}
-          >
-            <p className="text-xs font-black tracking-[0.18em] opacity-55">{eyebrow}</p>
-            <h2 className="mt-4 max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.07em]">
-              {title}
-            </h2>
-            <p className="mt-5 max-w-2xl whitespace-pre-line text-sm font-semibold leading-7 opacity-70">
-              {description}
-            </p>
-            <button className="mt-8 rounded-full bg-white px-5 py-3 text-sm font-black text-black">
-              {buttonText}
-            </button>
+      render: ({ title, description, backgroundColor, products = [] }) => (
+        <section className="bg-[#f6f6f7] px-5 py-8 text-black md:px-8">
+          <div className="mx-auto grid w-full max-w-[1400px] overflow-hidden rounded-3xl text-white shadow-2xl shadow-black/10 lg:grid-cols-[1.1fr_0.9fr]" style={{ backgroundColor }}>
+            <div className="bg-black/35 p-8 md:p-12">
+              <p className="text-xs font-black tracking-[0.18em] text-white/55">SPECIAL CURATION</p>
+              <h2 className="mt-4 max-w-[560px] text-4xl font-black leading-[0.98] tracking-[-0.06em] md:text-6xl">{title}</h2>
+              <p className="mt-5 max-w-[520px] text-sm font-semibold leading-7 text-white/75">{description}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-white/10 p-px">
+              {(products.length ? products : defaultProducts.slice(0, 4)).map((item, index) => (
+                <div key={`${item.name}-${index}`} className="min-h-[150px] bg-black/20 p-5">
+                  <p className="text-[11px] font-black tracking-[0.12em] text-white/45">{item.category}</p>
+                  <p className="mt-3 text-lg font-black leading-5 text-white">{item.name}</p>
+                  <p className="mt-2 text-sm font-bold text-white/60">{item.priceLabel}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       ),
     },
 
-    BrandIntroSection: {
+    CommerceReviewSection: {
       fields: {
-        eyebrow: { type: "text" },
         title: { type: "text" },
         description: { type: "textarea" },
         backgroundColor: { type: "text" },
-        textColor: { type: "text" },
-      },
-      defaultProps: {
-        eyebrow: "BRAND STORY",
-        title: "브랜드 소개",
-        description: "브랜드가 전달하고 싶은 가치와 분위기를 설명합니다.",
-        backgroundColor: "#ffffff",
-        textColor: "#111111",
-      },
-      render: ({ eyebrow, title, description, backgroundColor, textColor }) => (
-        <section className="px-8 py-16" style={{ backgroundColor, color: textColor }}>
-          <div className="mx-auto max-w-6xl rounded-[2rem] border border-black/10 p-10">
-            <p className="text-xs font-black tracking-[0.18em] opacity-45">{eyebrow}</p>
-            <h2 className="mt-4 text-4xl font-black tracking-[-0.06em]">{title}</h2>
-            <p className="mt-5 max-w-3xl whitespace-pre-line text-sm font-semibold leading-8 opacity-70">
-              {description}
-            </p>
-          </div>
-        </section>
-      ),
-    },
-
-    ReviewSection: {
-      fields: {
-        eyebrow: { type: "text" },
-        title: { type: "text" },
-        backgroundColor: { type: "text" },
-        textColor: { type: "text" },
         reviews: {
           type: "array",
           min: 1,
@@ -217,24 +345,26 @@ export const shoppingPuckConfig = {
         },
       },
       defaultProps: {
-        eyebrow: "REVIEWS",
-        title: "고객 후기",
+        title: "고객들이 남긴 이야기",
+        description: "브랜드의 분위기와 상품 경험을 리뷰로 보여줍니다.",
         backgroundColor: "#111214",
-        textColor: "#ffffff",
-        reviews: [],
+        reviews: defaultReviews,
       },
-      render: ({ eyebrow, title, backgroundColor, textColor, reviews = [] }) => (
-        <section className="px-8 py-16" style={{ backgroundColor, color: textColor }}>
-          <div className="mx-auto max-w-6xl">
-            <p className="text-xs font-black tracking-[0.18em] opacity-45">{eyebrow}</p>
-            <h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">{title}</h2>
-            <div className="mt-8 grid gap-5 md:grid-cols-3">
-              {reviews.map((review, index) => (
-                <article key={`${review.name}-${index}`} className="rounded-3xl bg-white/10 p-6">
-                  <p className="text-lg font-black leading-7">"{review.text}"</p>
-                  <p className="mt-6 text-sm font-black">{review.name}</p>
-                  <p className="text-xs opacity-50">{review.role}</p>
-                </article>
+      render: ({ title, description, backgroundColor, reviews = [] }) => (
+        <section className="border-t border-white/10 px-5 py-10 text-white md:px-8" style={{ backgroundColor }}>
+          <div className="mx-auto grid w-full max-w-[1400px] gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/10">
+              <p className="text-xs font-black tracking-[0.16em] text-white/45">EDITORIAL NOTE</p>
+              <h2 className="mt-3 text-3xl font-black tracking-[-0.05em]">{title}</h2>
+              <p className="mt-4 whitespace-pre-line text-sm leading-7 text-white/75">{description}</p>
+            </div>
+            <div className="grid gap-4">
+              {(reviews.length ? reviews : defaultReviews).slice(0, 3).map((review) => (
+                <div key={`${review.name}-${review.role}`} className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/10">
+                  <p className="text-sm font-semibold leading-6 text-white/80">"{review.text}"</p>
+                  <p className="mt-4 text-sm font-black">{review.name}</p>
+                  <p className="text-xs text-white/45">{review.role}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -244,80 +374,123 @@ export const shoppingPuckConfig = {
   },
 };
 
-export const initialShoppingPuckData = {
-  root: {
-    props: {
-      title: "무블리 AI 쇼핑몰 초안",
-    },
-  },
-  content: [
-    {
-      type: "HeroSection",
+export const initialShoppingPuckData = createShoppingPuckDataFromTemplate({
+  brandName: "MOOD SHOP",
+  heroBadge: "오늘의 추천 컬렉션",
+  heroTitle: "매일 입고 싶은\n감각적인 데일리 룩",
+  heroDescription: "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
+  featuredEyebrow: "베스트셀러",
+  featuredTitle: "지금 가장 많이 보는 아이템",
+  bannerTitle: "이번 주 추천 브랜드",
+  bannerDescription: "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+  aboutTitle: "고객들이 남긴 이야기",
+  aboutDescription: "브랜드의 분위기와 상품 경험을 리뷰로 보여줍니다.",
+  productCards: defaultProducts,
+  reviewCards: defaultReviews,
+});
+
+export function isLegacyShoppingPuckData(data = {}) {
+  return Boolean(
+    data?.content?.some((item) =>
+      ["HeroSection", "ProductGrid", "BannerSection", "BrandIntroSection", "ReviewSection"].includes(item.type)
+    )
+  );
+}
+
+export function createShoppingPuckDataFromTemplate(content = {}) {
+  const theme = content.theme || {};
+  const primaryColor = safeColor(theme.primaryColor, "#d8d8d5");
+  const secondaryColor = safeColor(theme.secondaryColor, "#b8b8b2");
+  const backgroundColor = safeColor(theme.backgroundColor, "#101113");
+  const surfaceColor = safeColor(theme.surfaceColor, "#f6f6f7");
+  const textColor = safeColor(theme.textColor, "#111111");
+  const accentColor = safeColor(theme.accentColor, "#ffffff");
+  const brandName = content.brandName || "MOOD SHOP";
+  const products = content.productCards?.length ? content.productCards : defaultProducts;
+  const reviews = content.reviewCards?.length ? content.reviewCards : defaultReviews;
+  const tiles = (content.marqueeItems?.length ? content.marqueeItems : ["신상품", "베스트", "세일", "스타일"])
+    .flatMap((item, index) => [
+      { label: `${item} EDIT ${index + 1}` },
+      { label: `${brandName} CURATION ${index + 1}` },
+    ])
+    .slice(0, 12);
+
+  return {
+    root: {
       props: {
-        id: "hero-1",
-        badge: "MOOD SELECT",
-        title: "매일 입고 싶은 감각적인 데일리 룩",
-        description: "무블리만의 따뜻한 무드로 완성한 여성 의류 셀렉트샵 초안입니다.",
-        primaryButtonText: "지금 쇼핑하기",
-        secondaryButtonText: "룩북 보기",
-        backgroundColor: "#191514",
-        accentColor: "#f3b6a5",
-        textColor: "#ffffff",
+        title: `${brandName} 쇼핑몰 초안`,
       },
     },
-    {
-      type: "ProductGrid",
-      props: {
-        id: "products-1",
-        eyebrow: "CURATED",
-        title: "지금 가장 많이 보는 아이템",
-        backgroundColor: "#fff5ef",
-        textColor: "#181412",
-        products: [
-          { category: "OUTER", name: "라이트 트렌치 코트", priceLabel: "129,000원", badge: "BEST" },
-          { category: "TOP", name: "소프트 니트 탑", priceLabel: "59,000원", badge: "NEW" },
-          { category: "BOTTOM", name: "와이드 코튼 팬츠", priceLabel: "74,000원", badge: "" },
-          { category: "ACC", name: "미니 레더 백", priceLabel: "89,000원", badge: "BEST" },
-        ],
+    content: [
+      {
+        type: "CommerceHeader",
+        props: {
+          id: "commerce-header",
+          brandName,
+          notice: "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
+          backgroundColor,
+          pointColor: safeColor(theme.primaryColor, "#3868ff"),
+        },
       },
-    },
-    {
-      type: "BannerSection",
-      props: {
-        id: "banner-1",
-        eyebrow: "SPECIAL CURATION",
-        title: "이번 주 무블리 단독 추천",
-        description: "데일리룩에 바로 적용할 수 있는 컬러와 실루엣 중심으로 구성했습니다.",
-        buttonText: "기획전 보기",
-        backgroundColor: "#2b211f",
-        textColor: "#ffffff",
+      {
+        type: "CommerceHeroGrid",
+        props: {
+          id: "commerce-hero",
+          badge: content.heroBadge || "오늘의 추천 컬렉션",
+          title: content.heroTitle || "매일 입고 싶은\n감각적인 데일리 룩",
+          description: content.heroDescription || "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
+          primaryButtonText: content.primaryCtaLabel || "지금 쇼핑하기",
+          secondaryButtonText: content.secondaryCtaLabel || "더 보기",
+          backgroundColor: primaryColor,
+          secondaryColor,
+          textColor: accentColor,
+          products: products.slice(0, 3).map((item, index) => ({
+            category: index === 0 ? content.heroBadge || "오늘의 추천 컬렉션" : item.category,
+            name: index === 0 ? content.heroTitle || item.name : item.name,
+            description: index === 0 ? content.heroDescription || "" : content.bannerDescription || "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+          })),
+        },
       },
-    },
-    {
-      type: "BrandIntroSection",
-      props: {
-        id: "brand-1",
-        eyebrow: "BRAND STORY",
-        title: "무블리의 스타일 제안",
-        description: "과하지 않은 감도와 편안한 착용감을 기준으로 매일 입기 좋은 상품을 큐레이션합니다.",
-        backgroundColor: "#ffffff",
-        textColor: "#181412",
+      {
+        type: "BrandTileGrid",
+        props: {
+          id: "brand-tiles",
+          tiles,
+          backgroundColor: surfaceColor,
+          tileColor: "#ffffff",
+        },
       },
-    },
-    {
-      type: "ReviewSection",
-      props: {
-        id: "reviews-1",
-        eyebrow: "REVIEWS",
-        title: "고객들이 남긴 이야기",
-        backgroundColor: "#181412",
-        textColor: "#ffffff",
-        reviews: [
-          { name: "지은", role: "직장인", text: "색감이 과하지 않고 데일리로 입기 좋아요." },
-          { name: "민서", role: "대학생", text: "상품 구성이 깔끔해서 원하는 옷을 찾기 쉬웠어요." },
-          { name: "수진", role: "프리랜서", text: "따뜻한 분위기와 상품 이미지가 잘 어울려요." },
-        ],
+      {
+        type: "CommerceProductGrid",
+        props: {
+          id: "commerce-products",
+          eyebrow: content.featuredEyebrow || "베스트셀러",
+          title: content.featuredTitle || "지금 가장 많이 보는 아이템",
+          backgroundColor: surfaceColor,
+          imageColor: secondaryColor,
+          products: products.slice(0, 8),
+        },
       },
-    },
-  ],
-};
+      {
+        type: "CommercePromoSection",
+        props: {
+          id: "commerce-promo",
+          title: content.bannerTitle || "이번 주 추천 브랜드",
+          description: content.bannerDescription || "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+          backgroundColor,
+          products: products.slice(0, 4),
+        },
+      },
+      {
+        type: "CommerceReviewSection",
+        props: {
+          id: "commerce-reviews",
+          title: content.aboutTitle || "고객들이 남긴 이야기",
+          description: content.aboutDescription || "브랜드의 분위기와 상품 경험을 리뷰로 보여줍니다.",
+          backgroundColor,
+          reviews,
+        },
+      },
+    ],
+  };
+}
