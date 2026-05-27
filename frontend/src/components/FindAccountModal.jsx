@@ -21,7 +21,7 @@ const AUTH_MESSAGES = {
 // 2026-05-13 회원가입과 동일 정책 적용 전 임시 프론트 비밀번호 검증 추가
 // 회원가입 페이지에 별도 정책 함수가 있으면 이 함수 내부만 같은 조건으로 맞추면 됩니다.
 const passwordPattern =
-  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?]).{8,}$/;
+  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,20}$/;
 
 const getPayloadMessage = (payload, fallback) =>
   payload?.message || extractErrorMessage(payload, fallback);
