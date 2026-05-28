@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const freePlanNotes = [
   "기본 5회까지 무료 생성이 가능합니다.",
@@ -33,13 +34,19 @@ export function FreePlanText({ className = "" }) {
   );
 }
 
-export default function FreeStartButton({ className = "", children }) {
+export default function FreeStartButton({
+  className = "",
+  children,
+  guestTo = "/signup",
+  loggedInTo = "/templates",
+}) {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleConfirm = () => {
     setIsOpen(false);
-    navigate("/signup");
+    navigate(isLoggedIn ? loggedInTo : guestTo);
   };
 
   return (

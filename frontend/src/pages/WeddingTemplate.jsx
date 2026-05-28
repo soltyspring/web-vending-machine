@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const PAGES = {
   home: "HOME",
@@ -112,9 +113,15 @@ function FlowerBadge() {
 }
 
 export default function WeddingTemplate() {
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [page, setPage] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
+
+  const handleStart = () => {
+    navigate(isLoggedIn ? "/ai-editor" : "/signup");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -673,15 +680,16 @@ export default function WeddingTemplate() {
           showCTA ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}
       >
-        <Link
-          to="/signup"
+        <button
+          type="button"
+          onClick={handleStart}
           className="flex items-center gap-2 rounded-full bg-[#5e4652] px-8 py-4 text-sm font-bold text-white shadow-2xl shadow-[#5e4652]/25 transition hover:-translate-y-0.5"
         >
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[9px] font-black text-[#5e4652]">
             W
           </span>
           이 템플릿으로 시작하기
-        </Link>
+        </button>
       </div>
     </div>
   );
