@@ -115,7 +115,7 @@ export default function PuckEditorPage() {
 
   if (previewMode) {
     return (
-      <div className="min-h-screen bg-[#f5f5f6] pt-6">
+      <div className="min-h-screen bg-[#f5f5f6] pt-20">
         <div className="sticky top-20 z-30 border-y border-black/10 bg-white/95 px-5 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between">
             <div>
@@ -142,7 +142,7 @@ export default function PuckEditorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f6]">
+    <div className="min-h-screen bg-[#f5f5f6] pt-20">
       <div className="border-b border-black/10 bg-white px-6 py-4">
         <div className="mx-auto max-w-6xl">
           <p className="text-xs font-black tracking-[0.18em] text-black/35">AI EDITOR MVP</p>
@@ -194,7 +194,7 @@ export default function PuckEditorPage() {
         </div>
       </div>
 
-      <div className="h-[calc(100vh-180px)]">
+      <div className="h-[calc(100vh-260px)]">
         <Puck
           config={shoppingPuckConfig}
           data={publishedData}

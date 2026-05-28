@@ -45,6 +45,7 @@ export default function MyPage() {
   const [isLoadingSites, setIsLoadingSites] = useState(false);
   const [renamingSiteId, setRenamingSiteId] = useState(null);
   const [deletingSiteId, setDeletingSiteId] = useState(null);
+  const [renameModal, setRenameModal] = useState(null);
   const [siteError, setSiteError] = useState("");
 
   useEffect(() => {
@@ -80,9 +81,25 @@ export default function MyPage() {
     return <Navigate to="/login" replace />;
   }
 
-  const handleRenameSite = async (siteId, siteName) => {
-    const nextName = window.prompt("템플릿 이름을 입력해 주세요.", siteName);
-    if (!nextName || nextName.trim() === siteName) return;
+  const openRenameModal = (siteId, siteName) => {
+    setRenameModal({ siteId, siteName, nextName: siteName });
+    setSiteError("");
+  };
+
+  const closeRenameModal = () => {
+    if (renamingSiteId) return;
+    setRenameModal(null);
+  };
+
+  const handleRenameSite = async () => {
+    if (!renameModal) return;
+
+    const { siteId, siteName, nextName } = renameModal;
+    const trimmedName = nextName.trim();
+    if (!trimmedName || trimmedName === siteName) {
+      closeRenameModal();
+      return;
+    }
 
     setRenamingSiteId(siteId);
     setSiteError("");
@@ -93,7 +110,7 @@ export default function MyPage() {
         headers: createAuthHeaders(accessToken, {
           "Content-Type": "application/json",
         }),
-        body: JSON.stringify({ siteName: nextName.trim() }),
+        body: JSON.stringify({ siteName: trimmedName }),
       });
       const payload = await parseJsonResponse(response);
 
@@ -106,6 +123,7 @@ export default function MyPage() {
           site.siteId === siteId ? { ...site, siteName: payload.siteName } : site
         )
       );
+      setRenameModal(null);
     } catch (error) {
       setSiteError(error.message || "템플릿 이름 변경에 실패했습니다.");
     } finally {
@@ -290,7 +308,7 @@ export default function MyPage() {
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
-                          onClick={() => handleRenameSite(site.siteId, site.siteName)}
+                          onClick={() => openRenameModal(site.siteId, site.siteName)}
                           disabled={renamingSiteId === site.siteId || deletingSiteId === site.siteId}
                           className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-950 hover:text-slate-950 disabled:cursor-wait disabled:opacity-60"
                         >
@@ -325,6 +343,59 @@ export default function MyPage() {
           </div>
         </div>
       </div>
+      {renameModal ? (
+        <div className="fixed inset-0 z-[70] flex min-h-screen items-center justify-center bg-slate-950/55 px-5 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-[460px] rounded-[32px] bg-white p-6 shadow-[0_28px_90px_rgba(15,23,42,0.28)] md:p-7">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+              Rename Website
+            </p>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.05em] text-slate-950">
+              웹페이지 이름 변경
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+              마이페이지와 편집기에서 표시될 웹페이지 이름을 입력해 주세요.
+            </p>
+            <label className="mt-6 block">
+              <span className="text-sm font-bold text-slate-700">웹페이지 이름</span>
+              <input
+                type="text"
+                value={renameModal.nextName}
+                onChange={(event) =>
+                  setRenameModal((prev) =>
+                    prev ? { ...prev, nextName: event.target.value } : prev
+                  )
+                }
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") handleRenameSite();
+                  if (event.key === "Escape") closeRenameModal();
+                }}
+                autoFocus
+                maxLength={40}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base font-bold text-slate-950 outline-none transition focus:border-slate-950 focus:bg-white"
+                placeholder="예: 브랜드 쇼핑몰"
+              />
+            </label>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={closeRenameModal}
+                disabled={Boolean(renamingSiteId)}
+                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleRenameSite}
+                disabled={Boolean(renamingSiteId) || !renameModal.nextName.trim()}
+                className="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+              >
+                {renamingSiteId ? "변경 중..." : "변경하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
