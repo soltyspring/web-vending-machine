@@ -132,7 +132,7 @@ def mask_username(username: str) -> str:
 
     return username[:visible_count] + "*" * (length - visible_count)
 
-#이런
+
 def mask_email(email: str) -> str:
     local_part, domain = email.split("@", 1)
     return f"{mask_username(local_part)}@{domain}"

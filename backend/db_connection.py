@@ -7,7 +7,7 @@ conn = pymysql.connect(
     user="admin",
     password=os.getenv("Database_Password") ,
     port=13306,
-    database="vending"   # 🔥 이거 추가
+    database="vending" 
 )
 
 cursor = conn.cursor()
