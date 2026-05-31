@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ShoppingTemplateSetupModal from "../components/ShoppingTemplateSetupModal";
+import { createApiUrl } from "../lib/api";
 
 /* ───────── 페이지 정의 ───────── */
 const PAGES = {
@@ -331,7 +332,7 @@ export default function ShoppingTemplate() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://localhost:8000/generate-template", {
+      const response = await fetch(createApiUrl("/generate-template"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

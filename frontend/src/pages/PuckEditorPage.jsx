@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Puck, Render } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import {
   createApiUrl,
   createAuthHeaders,

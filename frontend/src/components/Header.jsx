@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import FreeStartButton from "./FreeStartButton";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 const menu = [
   { label: "메인", to: "/" },

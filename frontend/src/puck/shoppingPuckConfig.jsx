@@ -115,6 +115,7 @@ export const shoppingPuckConfig = {
           <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-5 py-3 text-sm font-black md:px-8">
             <div className="scrollbar-hide flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/80">
               <span className="text-lg">☰</span>
+              <span className="font-black text-white">{brandName}</span>
               {topNavigation.map((item, index) => (
                 <span key={`${item.label}-${index}`}>{item.label}</span>
               ))}
@@ -602,7 +603,6 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
   const secondaryColor = safeColor(theme.secondaryColor, "#b8b8b2");
   const backgroundColor = safeColor(theme.backgroundColor, "#101113");
   const surfaceColor = safeColor(theme.surfaceColor, "#f6f6f7");
-  const textColor = safeColor(theme.textColor, "#111111");
   const accentColor = safeColor(theme.accentColor, "#ffffff");
   const brandName = content.brandName || "MOOD SHOP";
   const products = content.productCards?.length ? content.productCards : defaultProducts;

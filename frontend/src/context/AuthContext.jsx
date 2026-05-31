@@ -1,12 +1,11 @@
-import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
+import { AuthContext } from "./AuthContextObject";
 import {
   clearAccessToken,
   getStoredAccessToken,
   persistAccessToken,
   subscribeAuthChange,
 } from "../lib/auth";
-
-const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const accessToken = useSyncExternalStore(
@@ -26,14 +25,4 @@ export function AuthProvider({ children }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider.");
-  }
-
-  return context;
 }

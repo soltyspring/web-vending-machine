@@ -46,7 +46,7 @@ class LoginRequest(BaseModel):
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "login-secret-key"
+SECRET_KEY = os.getenv("SECRET_KEY", "login-secret-key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 EMAIL_CODE_EXPIRE_MINUTES = 10
