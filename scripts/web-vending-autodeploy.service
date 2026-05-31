@@ -1,0 +1,12 @@
+[Unit]
+Description=Deploy web-vending-machine from origin/main
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=APP_DIR=/home/ubuntu/web-vending-machine
+Environment=APP_USER=ubuntu
+Environment=BRANCH=main
+Environment=API_SERVICE=web-vending-api
+ExecStart=/home/ubuntu/web-vending-machine/scripts/deploy-main.sh

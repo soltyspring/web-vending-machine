@@ -1,0 +1,11 @@
+[Unit]
+Description=Check origin/main and deploy web-vending-machine
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Persistent=true
+Unit=web-vending-autodeploy.service
+
+[Install]
+WantedBy=timers.target
