@@ -9,17 +9,14 @@ import {
   extractErrorMessage,
   parseJsonResponse,
 } from "../lib/api";
-import {
-  createShoppingPuckDataFromTemplate,
-  initialShoppingPuckData,
-  isLegacyShoppingPuckData,
-  shoppingPuckConfig,
-} from "../puck/shoppingPuckConfig";
+import { getPuckTemplate } from "../puck/templatePuckRegistry";
 
 export default function PuckEditorPage() {
   const { siteId } = useParams();
   const { accessToken, isLoggedIn } = useAuth();
-  const [publishedData, setPublishedData] = useState(initialShoppingPuckData);
+  const defaultTemplate = getPuckTemplate();
+  const [templateType, setTemplateType] = useState("shopping");
+  const [publishedData, setPublishedData] = useState(defaultTemplate.initialData);
   const [previewMode, setPreviewMode] = useState(false);
   const [siteName, setSiteName] = useState("Puck JSON 편집 테스트");
   const [isLoading, setIsLoading] = useState(Boolean(siteId));
@@ -45,13 +42,16 @@ export default function PuckEditorPage() {
           throw new Error(extractErrorMessage(payload, "저장된 웹페이지를 불러오지 못했습니다."));
         }
 
+        const nextTemplateType = payload.templateType || "shopping";
+        const template = getPuckTemplate(nextTemplateType);
+        setTemplateType(nextTemplateType);
         setSiteName(payload.siteName || "저장된 웹페이지");
         const shouldRebuildFromAiResponse =
-          payload.aiResponse && (!payload.puckData || isLegacyShoppingPuckData(payload.puckData));
+          payload.aiResponse && (!payload.puckData || template.isLegacyData(payload.puckData));
         setPublishedData(
           shouldRebuildFromAiResponse
-            ? createShoppingPuckDataFromTemplate(payload.aiResponse)
-            : payload.puckData || initialShoppingPuckData
+            ? template.createData(payload.aiResponse)
+            : payload.puckData || template.initialData
         );
       } catch (error) {
         setErrorMessage(error.message || "저장된 웹페이지를 불러오지 못했습니다.");
@@ -114,6 +114,8 @@ export default function PuckEditorPage() {
   }
 
   if (previewMode) {
+    const template = getPuckTemplate(templateType);
+
     return (
       <div className="min-h-screen bg-[#f5f5f6] pt-20">
         <div className="sticky top-20 z-30 border-y border-black/10 bg-white/95 px-5 py-3 backdrop-blur">
@@ -136,10 +138,12 @@ export default function PuckEditorPage() {
             </button>
           </div>
         </div>
-        <Render config={shoppingPuckConfig} data={publishedData} />
+        <Render config={template.config} data={publishedData} />
       </div>
     );
   }
+
+  const template = getPuckTemplate(templateType);
 
   return (
     <div className="min-h-screen bg-[#f5f5f6] pt-20">
@@ -196,7 +200,7 @@ export default function PuckEditorPage() {
 
       <div className="h-[calc(100vh-260px)]">
         <Puck
-          config={shoppingPuckConfig}
+          config={template.config}
           data={publishedData}
           onPublish={handlePublish}
           headerTitle={isSaving ? "저장 중..." : "Web Vending Machine AI Editor"}

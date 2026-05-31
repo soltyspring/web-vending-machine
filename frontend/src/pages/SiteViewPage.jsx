@@ -8,18 +8,15 @@ import {
   extractErrorMessage,
   parseJsonResponse,
 } from "../lib/api";
-import {
-  createShoppingPuckDataFromTemplate,
-  initialShoppingPuckData,
-  isLegacyShoppingPuckData,
-  shoppingPuckConfig,
-} from "../puck/shoppingPuckConfig";
+import { getPuckTemplate } from "../puck/templatePuckRegistry";
 
 export default function SiteViewPage() {
   const { siteId } = useParams();
   const { accessToken, isLoggedIn } = useAuth();
+  const defaultTemplate = getPuckTemplate();
   const [siteName, setSiteName] = useState("웹페이지");
-  const [puckData, setPuckData] = useState(initialShoppingPuckData);
+  const [templateType, setTemplateType] = useState("shopping");
+  const [puckData, setPuckData] = useState(defaultTemplate.initialData);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -40,14 +37,17 @@ export default function SiteViewPage() {
           throw new Error(extractErrorMessage(payload, "웹페이지를 불러오지 못했습니다."));
         }
 
+        const nextTemplateType = payload.templateType || "shopping";
+        const template = getPuckTemplate(nextTemplateType);
         const shouldRebuildFromAiResponse =
-          payload.aiResponse && (!payload.puckData || isLegacyShoppingPuckData(payload.puckData));
+          payload.aiResponse && (!payload.puckData || template.isLegacyData(payload.puckData));
 
         setSiteName(payload.siteName || "웹페이지");
+        setTemplateType(nextTemplateType);
         setPuckData(
           shouldRebuildFromAiResponse
-            ? createShoppingPuckDataFromTemplate(payload.aiResponse)
-            : payload.puckData || initialShoppingPuckData
+            ? template.createData(payload.aiResponse)
+            : payload.puckData || template.initialData
         );
       } catch (error) {
         setErrorMessage(error.message || "웹페이지를 불러오지 못했습니다.");
@@ -90,6 +90,8 @@ export default function SiteViewPage() {
     );
   }
 
+  const template = getPuckTemplate(templateType);
+
   return (
     <div className="min-h-screen bg-white pt-20">
       <div className="sticky top-20 z-30 border-b border-black/10 bg-white/90 px-5 py-3 backdrop-blur">
@@ -106,7 +108,7 @@ export default function SiteViewPage() {
           </Link>
         </div>
       </div>
-      <Render config={shoppingPuckConfig} data={puckData} />
+      <Render config={template.config} data={puckData} />
     </div>
   );
 }

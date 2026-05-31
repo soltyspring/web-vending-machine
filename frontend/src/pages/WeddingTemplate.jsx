@@ -1,6 +1,16 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import {
+  createApiUrl,
+  createAuthHeaders,
+  extractErrorMessage,
+  parseJsonResponse,
+} from "../lib/api";
+import {
+  createWeddingPuckDataFromTemplate,
+  weddingTemplateContent,
+} from "../puck/weddingPuckConfig";
 
 const PAGES = {
   home: "HOME",
@@ -114,13 +124,51 @@ function FlowerBadge() {
 
 export default function WeddingTemplate() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { accessToken, isLoggedIn } = useAuth();
   const [page, setPage] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
+  const [isSavingSite, setIsSavingSite] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleStart = () => {
-    navigate(isLoggedIn ? "/ai-editor" : "/signup");
+  const handleStart = async () => {
+    if (!isLoggedIn) {
+      navigate("/signup");
+      return;
+    }
+
+    setIsSavingSite(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(createApiUrl("/api/sites"), {
+        method: "POST",
+        headers: createAuthHeaders(accessToken, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          templateType: "wedding",
+          siteName: weddingTemplateContent.brandName,
+          aiRequest: {
+            templateId: "wedding",
+            source: "default-wedding-template",
+          },
+          aiResponse: weddingTemplateContent,
+          puckData: createWeddingPuckDataFromTemplate(weddingTemplateContent),
+        }),
+      });
+      const payload = await parseJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(extractErrorMessage(payload, "웨딩 템플릿 저장에 실패했습니다."));
+      }
+
+      navigate(`/ai-editor/${payload.siteId}`);
+    } catch (error) {
+      setErrorMessage(error.message || "웨딩 템플릿 저장에 실패했습니다.");
+    } finally {
+      setIsSavingSite(false);
+    }
   };
 
   useEffect(() => {
@@ -683,14 +731,22 @@ export default function WeddingTemplate() {
         <button
           type="button"
           onClick={handleStart}
+          disabled={isSavingSite}
           className="flex items-center gap-2 rounded-full bg-[#5e4652] px-8 py-4 text-sm font-bold text-white shadow-2xl shadow-[#5e4652]/25 transition hover:-translate-y-0.5"
         >
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[9px] font-black text-[#5e4652]">
             W
           </span>
-          이 템플릿으로 시작하기
+          {isSavingSite ? "편집기 준비 중..." : "이 템플릿으로 시작하기"}
         </button>
       </div>
+      {errorMessage ? (
+        <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-5">
+          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 shadow-lg">
+            {errorMessage}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
