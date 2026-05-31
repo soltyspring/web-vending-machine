@@ -213,11 +213,11 @@ def check_recovery_code(cursor, email: str, code: str):
 
 def get_connection():
     return pymysql.connect(
-        host="127.0.0.1",
-        user="admin",
+        host=os.getenv("DB_HOST", "127.0.0.1"),
+        user=os.getenv("DB_USER", "admin"),
         password=os.getenv("Database_Password"),
-        port=13306,
-        database="vending",
+        port=int(os.getenv("DB_PORT", "13306")),
+        database=os.getenv("DB_NAME", "vending"),
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=True,
     )
