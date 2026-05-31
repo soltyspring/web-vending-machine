@@ -46,6 +46,7 @@ export default function MyPage() {
   const [renamingSiteId, setRenamingSiteId] = useState(null);
   const [deletingSiteId, setDeletingSiteId] = useState(null);
   const [renameModal, setRenameModal] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(null);
   const [siteError, setSiteError] = useState("");
 
   useEffect(() => {
@@ -91,6 +92,16 @@ export default function MyPage() {
     setRenameModal(null);
   };
 
+  const openDeleteModal = (siteId, siteName) => {
+    setDeleteModal({ siteId, siteName });
+    setSiteError("");
+  };
+
+  const closeDeleteModal = () => {
+    if (deletingSiteId) return;
+    setDeleteModal(null);
+  };
+
   const handleRenameSite = async () => {
     if (!renameModal) return;
 
@@ -131,9 +142,9 @@ export default function MyPage() {
     }
   };
 
-  const handleDeleteSite = async (siteId, siteName) => {
-    const confirmed = window.confirm(`"${siteName}" 웹페이지를 삭제할까요?`);
-    if (!confirmed) return;
+  const handleDeleteSite = async () => {
+    if (!deleteModal) return;
+    const { siteId } = deleteModal;
 
     setDeletingSiteId(siteId);
     setSiteError("");
@@ -151,6 +162,7 @@ export default function MyPage() {
 
       setSites((prev) => prev.filter((site) => site.siteId !== siteId));
       setUsage(payload.usage || null);
+      setDeleteModal(null);
     } catch (error) {
       setSiteError(error.message || "웹페이지 삭제에 실패했습니다.");
     } finally {
@@ -328,7 +340,7 @@ export default function MyPage() {
                         </Link>
                         <button
                           type="button"
-                          onClick={() => handleDeleteSite(site.siteId, site.siteName)}
+                          onClick={() => openDeleteModal(site.siteId, site.siteName)}
                           disabled={deletingSiteId === site.siteId || renamingSiteId === site.siteId}
                           className="rounded-2xl border border-rose-200 bg-white px-5 py-3 text-sm font-black text-rose-600 transition hover:border-rose-500 hover:bg-rose-50 disabled:cursor-wait disabled:opacity-60"
                         >
@@ -391,6 +403,45 @@ export default function MyPage() {
                 className="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
               >
                 {renamingSiteId ? "변경 중..." : "변경하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {deleteModal ? (
+        <div className="fixed inset-0 z-[70] flex min-h-screen items-center justify-center bg-slate-950/55 px-5 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-[460px] rounded-[32px] bg-white p-6 shadow-[0_28px_90px_rgba(15,23,42,0.28)] md:p-7">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-400">
+              Delete Website
+            </p>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.05em] text-slate-950">
+              웹페이지 삭제
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+              삭제한 웹페이지는 마이페이지와 편집기에서 더 이상 열 수 없습니다.
+            </p>
+            <div className="mt-6 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-4">
+              <p className="text-xs font-black tracking-[0.12em] text-rose-400">DELETE TARGET</p>
+              <p className="mt-2 text-lg font-black tracking-[-0.04em] text-rose-700">
+                {deleteModal.siteName}
+              </p>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={Boolean(deletingSiteId)}
+                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSite}
+                disabled={Boolean(deletingSiteId)}
+                className="flex-1 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+              >
+                {deletingSiteId ? "삭제 중..." : "삭제하기"}
               </button>
             </div>
           </div>
