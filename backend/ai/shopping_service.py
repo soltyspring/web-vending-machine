@@ -9,6 +9,7 @@ from ai.shopping_prompt import build_shopping_prompt
 
 
 SHOPPING_TEMPLATE_SCHEMA = {
+    "type": "json_schema",
     "name": "shopping_template_content",
     "strict": True,
     "schema": {
@@ -40,10 +41,17 @@ SHOPPING_TEMPLATE_SCHEMA = {
             "aboutTitle": {"type": "string"},
             "aboutDescription": {"type": "string"},
             "footerDescription": {"type": "string"},
+            "visualSummary": {"type": "string"},
+            "moodKeywords": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 3,
+                "maxItems": 5,
+            },
             "productCards": {
                 "type": "array",
-                "minItems": 4,
-                "maxItems": 4,
+                "minItems": 6,
+                "maxItems": 6,
                 "items": {
                     "type": "object",
                     "additionalProperties": False,
@@ -81,6 +89,18 @@ SHOPPING_TEMPLATE_SCHEMA = {
                     "backgroundColor": {"type": "string"},
                     "surfaceColor": {"type": "string"},
                     "textColor": {"type": "string"},
+                    "heroPattern": {
+                        "type": "string",
+                        "enum": ["soft-gradient", "editorial-spotlight", "neon-grid", "paper-cut", "mono-luxury", "pop-block"],
+                    },
+                    "shapeStyle": {
+                        "type": "string",
+                        "enum": ["sharp", "soft", "pill", "organic"],
+                    },
+                    "contrastLevel": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                    },
                     "productImageScale": {
                         "type": "string",
                         "enum": ["small", "medium", "large"],
@@ -97,6 +117,9 @@ SHOPPING_TEMPLATE_SCHEMA = {
                     "backgroundColor",
                     "surfaceColor",
                     "textColor",
+                    "heroPattern",
+                    "shapeStyle",
+                    "contrastLevel",
                     "productImageScale",
                     "density",
                 ],
@@ -118,6 +141,8 @@ SHOPPING_TEMPLATE_SCHEMA = {
             "aboutTitle",
             "aboutDescription",
             "footerDescription",
+            "visualSummary",
+            "moodKeywords",
             "productCards",
             "reviewCards",
             "theme",
@@ -132,20 +157,24 @@ def generate_shopping_template(payload: TemplateGenerateRequest) -> TemplateGene
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not configured.")
 
     system_prompt, user_prompt = build_shopping_prompt(payload)
+    model = os.getenv("OPENAI_TEMPLATE_MODEL", "gpt-5.4-mini")
     request_body = {
-        "model": "gpt-4.1-mini",
-        "messages": [
+        "model": model,
+        "input": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        "response_format": {
-            "type": "json_schema",
-            "json_schema": SHOPPING_TEMPLATE_SCHEMA,
+        "text": {
+            "format": SHOPPING_TEMPLATE_SCHEMA,
+            "verbosity": "low",
         },
+        "max_output_tokens": 1800,
     }
+    if model.startswith("gpt-5"):
+        request_body["reasoning"] = {"effort": os.getenv("OPENAI_TEMPLATE_REASONING", "none")}
 
     req = request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        "https://api.openai.com/v1/responses",
         data=json.dumps(request_body).encode("utf-8"),
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -164,8 +193,22 @@ def generate_shopping_template(payload: TemplateGenerateRequest) -> TemplateGene
         raise HTTPException(status_code=502, detail=f"OpenAI request failed: {exc}")
 
     try:
-        content = raw["choices"][0]["message"]["content"]
+        content = extract_response_text(raw)
         parsed = json.loads(content)
         return TemplateGenerateResponse(**parsed)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to parse OpenAI response: {exc}")
+
+
+def extract_response_text(raw: dict) -> str:
+    if raw.get("output_text"):
+        return raw["output_text"]
+
+    for item in raw.get("output", []):
+        if item.get("type") != "message":
+            continue
+        for content in item.get("content", []):
+            if content.get("type") == "output_text" and content.get("text"):
+                return content["text"]
+
+    raise ValueError("OpenAI response did not include output text.")

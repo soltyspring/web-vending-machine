@@ -28,6 +28,8 @@ class TemplateGenerateResponse(BaseModel):
     aboutTitle: str
     aboutDescription: str
     footerDescription: str
+    visualSummary: str = ""
+    moodKeywords: list[str] = Field(default_factory=list)
     productCards: list[dict]
     reviewCards: list[dict]
     theme: dict = Field(default_factory=dict)

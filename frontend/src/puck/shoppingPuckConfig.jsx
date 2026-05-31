@@ -607,7 +607,8 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
   const brandName = content.brandName || "MOOD SHOP";
   const products = content.productCards?.length ? content.productCards : defaultProducts;
   const reviews = content.reviewCards?.length ? content.reviewCards : defaultReviews;
-  const tiles = (content.marqueeItems?.length ? content.marqueeItems : ["신상품", "베스트", "세일", "스타일"])
+  const moodKeywords = content.moodKeywords?.length ? content.moodKeywords : [];
+  const tiles = (moodKeywords.length ? moodKeywords : content.marqueeItems?.length ? content.marqueeItems : ["신상품", "베스트", "세일", "스타일"])
     .flatMap((item, index) => [
       { label: `${item} EDIT ${index + 1}` },
       { label: `${brandName} CURATION ${index + 1}` },
@@ -678,7 +679,9 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
           id: "commerce-promo",
           eyebrow: content.bannerEyebrow || "SPECIAL CURATION",
           title: content.bannerTitle || "이번 주 추천 브랜드",
-          description: content.bannerDescription || "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
+          description: content.visualSummary
+            ? `${content.bannerDescription || "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요."}\n\n${content.visualSummary}`
+            : content.bannerDescription || "큐레이션된 스타일과 브랜드를 한 번에 확인해 보세요.",
           tags: (content.navItems?.length ? content.navItems : defaultSubNavigation.slice(1, 5).map((item) => item.label)).map((label) => ({ label })),
           backgroundColor,
           products: products.slice(0, 4),

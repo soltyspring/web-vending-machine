@@ -34,6 +34,8 @@ const defaultContent = {
   aboutTitle: "지금 가장 많이 찾는 브랜드와 상품",
   aboutDescription: "메인에서 바로 탐색할 수 있도록 브랜드 타일과 추천 상품 영역을 밀도 있게 구성했습니다.",
   footerDescription: "트렌드, 브랜드, 상품을 한 화면에서 탐색하는 커머스형 템플릿",
+  visualSummary: "절제된 무채색과 촘촘한 상품 큐레이션을 강조한 커머스 메인",
+  moodKeywords: ["미니멀", "큐레이션", "데일리"],
   productCards: [
     { category: "상의", name: "에센셜 로고 스웨트", priceLabel: "69,000원", badge: "BEST" },
     { category: "아우터", name: "라이트 후드 점퍼", priceLabel: "119,000원", badge: "NEW" },
@@ -47,6 +49,19 @@ const defaultContent = {
     { name: "이하늘", role: "대학생", text: "배너랑 타일 구성이 익숙해서 쇼핑 흐름이 편합니다." },
     { name: "정민수", role: "프리랜서", text: "브랜드 탐색과 상품 탐색이 한 화면에 있어서 좋아요." },
   ],
+  theme: {
+    primaryColor: "#d9d9d9",
+    secondaryColor: "#bcbcbc",
+    accentColor: "#ffffff",
+    backgroundColor: "#111214",
+    surfaceColor: "#f6f6f7",
+    textColor: "#111111",
+    heroPattern: "soft-gradient",
+    shapeStyle: "soft",
+    contrastLevel: "medium",
+    productImageScale: "medium",
+    density: "balanced",
+  },
 };
 
 const themeByMood = {
@@ -189,6 +204,15 @@ const getGeneratedTheme = (theme = {}) => ({
   backgroundColor: isHexColor(theme.backgroundColor) ? theme.backgroundColor : "#111214",
   surfaceColor: isHexColor(theme.surfaceColor) ? theme.surfaceColor : "#f6f6f7",
   textColor: isHexColor(theme.textColor) ? theme.textColor : "#111111",
+  heroPattern: ["soft-gradient", "editorial-spotlight", "neon-grid", "paper-cut", "mono-luxury", "pop-block"].includes(theme.heroPattern)
+    ? theme.heroPattern
+    : "soft-gradient",
+  shapeStyle: ["sharp", "soft", "pill", "organic"].includes(theme.shapeStyle)
+    ? theme.shapeStyle
+    : "soft",
+  contrastLevel: ["low", "medium", "high"].includes(theme.contrastLevel)
+    ? theme.contrastLevel
+    : "medium",
   productImageScale: ["small", "medium", "large"].includes(theme.productImageScale)
     ? theme.productImageScale
     : "medium",
@@ -217,6 +241,28 @@ const productImageSizeByScale = {
   small: "h-14 w-14",
   medium: "h-20 w-20",
   large: "h-28 w-28",
+};
+
+const heroPatternOverlay = {
+  "soft-gradient": "radial-gradient(circle at 35% 24%, rgba(255,255,255,0.84), rgba(255,255,255,0.16) 38%, transparent 40%)",
+  "editorial-spotlight": "radial-gradient(circle at 50% 18%, rgba(255,255,255,0.98), rgba(255,255,255,0.18) 35%, transparent 55%)",
+  "neon-grid": "linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.18) 1px, transparent 1px)",
+  "paper-cut": "radial-gradient(circle at 30% 28%, rgba(255,255,255,0.75), transparent 34%), radial-gradient(circle at 70% 62%, rgba(255,255,255,0.45), transparent 30%)",
+  "mono-luxury": "linear-gradient(135deg, rgba(255,255,255,0.34), transparent 34%), radial-gradient(circle at 62% 20%, rgba(255,255,255,0.3), transparent 24%)",
+  "pop-block": "linear-gradient(135deg, rgba(255,255,255,0.9) 0 18%, transparent 18% 48%, rgba(255,255,255,0.42) 48% 66%, transparent 66%)",
+};
+
+const radiusByShape = {
+  sharp: "rounded-none",
+  soft: "rounded-md",
+  pill: "rounded-[34px]",
+  organic: "rounded-[46%_54%_44%_56%/58%_42%_58%_42%]",
+};
+
+const contrastOverlayOpacity = {
+  low: "opacity-40",
+  medium: "opacity-70",
+  high: "opacity-95",
 };
 
 const spacingByDensity = {
@@ -331,6 +377,9 @@ export default function ShoppingTemplateStore() {
     : undefined;
   const productImageSize =
     productImageSizeByScale[useGeneratedTheme ? generatedTheme.productImageScale : "medium"];
+  const generatedRadius = radiusByShape[generatedTheme.shapeStyle] || radiusByShape.soft;
+  const generatedOverlayOpacity =
+    contrastOverlayOpacity[generatedTheme.contrastLevel] || contrastOverlayOpacity.medium;
   const heroTitleLines = splitTitle(templateContent.heroTitle || defaultContent.heroTitle);
   const heroCards = makeHeroCards(templateContent, theme);
   const renderedPuckData = createShoppingPuckDataFromTemplate(templateContent);
@@ -342,6 +391,7 @@ export default function ShoppingTemplateStore() {
     .slice(0, 12);
   const products = templateContent.productCards?.length ? templateContent.productCards : defaultContent.productCards;
   const reviews = templateContent.reviewCards?.length ? templateContent.reviewCards : defaultContent.reviewCards;
+  const moodKeywords = templateContent.moodKeywords?.length ? templateContent.moodKeywords : defaultContent.moodKeywords;
 
   const handleFormChange = (key, value) => {
     setSetupForm((prev) => ({ ...prev, [key]: value }));
@@ -760,7 +810,17 @@ export default function ShoppingTemplateStore() {
                     className={`relative min-h-[430px] overflow-hidden bg-gradient-to-br ${item.gradient}`}
                     style={useGeneratedTheme ? generatedHeroStyle : undefined}
                   >
-                    <div className={`absolute inset-0 opacity-70 ${imageClassByIndex[index % imageClassByIndex.length]}`}></div>
+                    <div
+                      className={`absolute inset-0 ${useGeneratedTheme ? generatedOverlayOpacity : "opacity-70"} ${useGeneratedTheme ? "" : imageClassByIndex[index % imageClassByIndex.length]}`}
+                      style={
+                        useGeneratedTheme
+                          ? {
+                              backgroundImage: heroPatternOverlay[generatedTheme.heroPattern],
+                              backgroundSize: generatedTheme.heroPattern === "neon-grid" ? "38px 38px" : "auto",
+                            }
+                          : undefined
+                      }
+                    ></div>
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6">
                       <p className="text-xs font-black tracking-[0.15em] text-white/75">
                         {index === 0 ? templateContent.heroBadge : item.sub}
@@ -786,6 +846,15 @@ export default function ShoppingTemplateStore() {
                           </span>
                         </div>
                       ) : null}
+                      {index === 0 && moodKeywords.length ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {moodKeywords.slice(0, 4).map((keyword) => (
+                            <span key={keyword} className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-black text-white/80">
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   </article>
                 ))}
@@ -797,7 +866,7 @@ export default function ShoppingTemplateStore() {
                 {brandTiles.map((item, index) => (
                   <div
                     key={`${item}-${index}`}
-                    className={`rounded-md border border-black/10 bg-gradient-to-br ${theme.tile} px-4 py-4 text-center text-sm font-bold text-black shadow-sm`}
+                    className={`${useGeneratedTheme ? generatedRadius : "rounded-md"} border border-black/10 bg-gradient-to-br ${theme.tile} px-4 py-4 text-center text-sm font-bold text-black shadow-sm`}
                     style={
                       useGeneratedTheme
                         ? {
@@ -840,7 +909,7 @@ export default function ShoppingTemplateStore() {
                   {products.map((item, index) => (
                     <article key={`${item.name}-${index}`} className="group">
                       <div
-                        className={`aspect-[4/5] overflow-hidden rounded-md bg-gradient-to-br ${theme.product} p-3 shadow-sm`}
+                        className={`aspect-[4/5] overflow-hidden ${useGeneratedTheme ? generatedRadius : "rounded-md"} bg-gradient-to-br ${theme.product} p-3 shadow-sm`}
                         style={
                           useGeneratedTheme
                             ? {
@@ -850,7 +919,7 @@ export default function ShoppingTemplateStore() {
                         }
                       >
                         <div className="flex h-full items-center justify-center rounded-md bg-white/35">
-                          <div className={`${productImageSize} rounded-2xl bg-white/60 ${index % 2 === 0 ? "" : "rounded-full"}`}></div>
+                          <div className={`${productImageSize} bg-white/60 ${useGeneratedTheme ? generatedRadius : index % 2 === 0 ? "rounded-2xl" : "rounded-full"}`}></div>
                         </div>
                       </div>
                       <div className="mt-3">
@@ -884,6 +953,11 @@ export default function ShoppingTemplateStore() {
                   <p className="mt-5 max-w-[520px] text-sm font-semibold leading-7 text-white/75">
                     {templateContent.bannerDescription}
                   </p>
+                  {templateContent.visualSummary ? (
+                    <p className="mt-4 max-w-[520px] rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-black leading-5 text-white/70">
+                      {templateContent.visualSummary}
+                    </p>
+                  ) : null}
                   <div className="mt-8 flex flex-wrap gap-3">
                     {(templateContent.navItems?.length ? templateContent.navItems : defaultContent.navItems).map((item) => (
                       <span key={item} className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white/80">
