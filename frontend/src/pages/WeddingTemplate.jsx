@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import LoginRequiredModal from "../components/LoginRequiredModal";
+import TemplateStartButton from "../components/TemplateStartButton";
 import { useAuth } from "../context/useAuth";
 import {
   createApiUrl,
@@ -128,12 +130,13 @@ export default function WeddingTemplate() {
   const [page, setPage] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [isSavingSite, setIsSavingSite] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleStart = async () => {
     if (!isLoggedIn) {
-      navigate("/signup");
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -169,6 +172,11 @@ export default function WeddingTemplate() {
     } finally {
       setIsSavingSite(false);
     }
+  };
+
+  const handleLoginPromptLogin = () => {
+    setShowLoginPrompt(false);
+    navigate("/login");
   };
 
   useEffect(() => {
@@ -728,17 +736,12 @@ export default function WeddingTemplate() {
           showCTA ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}
       >
-        <button
-          type="button"
+        <TemplateStartButton
           onClick={handleStart}
-          disabled={isSavingSite}
-          className="flex items-center gap-2 rounded-full bg-[#5e4652] px-8 py-4 text-sm font-bold text-white shadow-2xl shadow-[#5e4652]/25 transition hover:-translate-y-0.5"
-        >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[9px] font-black text-[#5e4652]">
-            W
-          </span>
-          {isSavingSite ? "편집기 준비 중..." : "이 템플릿으로 시작하기"}
-        </button>
+          isLoading={isSavingSite}
+          iconLabel="W"
+          tone="warm"
+        />
       </div>
       {errorMessage ? (
         <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-5">
@@ -747,6 +750,11 @@ export default function WeddingTemplate() {
           </p>
         </div>
       ) : null}
+      <LoginRequiredModal
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onLogin={handleLoginPromptLogin}
+      />
     </div>
   );
 }

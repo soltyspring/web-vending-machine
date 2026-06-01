@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Render } from "@puckeditor/core";
+import LoginRequiredModal from "../components/LoginRequiredModal";
 import ShoppingTemplateSetupModal from "../components/ShoppingTemplateSetupModal";
+import TemplateStartButton from "../components/TemplateStartButton";
 import { useAuth } from "../context/useAuth";
 import {
   createApiUrl,
@@ -287,11 +289,13 @@ export default function ShoppingTemplateStore() {
   const navigate = useNavigate();
   const { accessToken, isLoggedIn } = useAuth();
   const [showSetupModal, setShowSetupModal] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingSite, setIsSavingSite] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [saveSiteName, setSaveSiteName] = useState("");
+  const [previewNotice, setPreviewNotice] = useState("");
   const [usage, setUsage] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [appliedMood, setAppliedMood] = useState("minimal");
@@ -445,7 +449,7 @@ export default function ShoppingTemplateStore() {
 
   const handleSaveGeneratedSite = async () => {
     if (!isLoggedIn) {
-      navigate("/login");
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -493,10 +497,27 @@ export default function ShoppingTemplateStore() {
   };
 
   const handleStart = () => {
+    if (!isLoggedIn) {
+      setIsSitePreviewMode(false);
+      setShowSetupModal(false);
+      setShowLoginPrompt(true);
+      return;
+    }
+
     setIsSitePreviewMode(false);
     setShowSetupModal(true);
     const el = document.getElementById("shopping-template-scroll");
     if (el) el.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLoginPromptLogin = () => {
+    setShowLoginPrompt(false);
+    navigate("/login");
+  };
+
+  const handlePreviewOnlyAction = (label) => {
+    setPreviewNotice(`${label}은 템플릿 미리보기용 기능입니다.`);
+    window.setTimeout(() => setPreviewNotice(""), 2200);
   };
 
   const handleTabClick = (tab) => {
@@ -766,12 +787,20 @@ export default function ShoppingTemplateStore() {
                   <span>좋아요</span>
                   <span>마이</span>
                   <span>장바구니</span>
-                  <Link to="/login" className="rounded-md border border-white/15 px-3 py-1.5 text-white transition hover:bg-white hover:text-black">
+                  <button
+                    type="button"
+                    onClick={() => handlePreviewOnlyAction("로그인")}
+                    className="rounded-md border border-white/15 px-3 py-1.5 text-white transition hover:bg-white hover:text-black"
+                  >
                     로그인
-                  </Link>
-                  <Link to="/signup" className="rounded-md bg-white px-3 py-1.5 font-bold text-black transition hover:-translate-y-0.5">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePreviewOnlyAction("회원가입")}
+                    className="rounded-md bg-white px-3 py-1.5 font-bold text-black transition hover:-translate-y-0.5"
+                  >
                     회원가입
-                  </Link>
+                  </button>
                 </div>
               </div>
 
@@ -1092,6 +1121,7 @@ export default function ShoppingTemplateStore() {
               errorMessage={errorMessage}
             />
           ) : null}
+
         </div>
         ) : (
           <Render config={shoppingPuckConfig} data={renderedPuckData} />
@@ -1109,14 +1139,25 @@ export default function ShoppingTemplateStore() {
       ) : null}
 
       <div className={`fixed inset-x-0 bottom-8 z-50 flex justify-center transition-all duration-500 ${showCTA && !showSetupModal && !isGenerated ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}>
-        <button
-          type="button"
+        <TemplateStartButton
           onClick={handleStart}
-          className="rounded-full bg-white px-8 py-4 text-sm font-black text-black shadow-2xl shadow-black/30 transition hover:-translate-y-0.5"
-        >
-          이 템플릿으로 시작하기
-        </button>
+          iconLabel="S"
+        />
       </div>
+
+      <LoginRequiredModal
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onLogin={handleLoginPromptLogin}
+      />
+
+      {previewNotice ? (
+        <div className="fixed inset-x-0 bottom-28 z-[70] flex justify-center px-5">
+          <p className="rounded-full border border-white/20 bg-slate-950 px-5 py-3 text-xs font-black text-white shadow-2xl shadow-black/25">
+            {previewNotice}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
