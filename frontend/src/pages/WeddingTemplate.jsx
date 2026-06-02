@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LoginRequiredModal from "../components/LoginRequiredModal";
 import TemplateStartButton from "../components/TemplateStartButton";
+import TemplateSetupModal from "../components/TemplateSetupModal";
 import { useAuth } from "../context/useAuth";
 import {
   createApiUrl,
@@ -112,6 +113,88 @@ const reviews = [
   },
 ];
 
+const weddingSetupFields = [
+  { name: "siteName", label: "웨딩 브랜드 / 페이지 이름", placeholder: "예: Lumière Wedding" },
+  {
+    name: "weddingMood",
+    label: "원하는 웨딩 무드",
+    type: "select",
+    options: [
+      { value: "romantic", label: "로맨틱 · 플라워" },
+      { value: "classic", label: "클래식 · 우아함" },
+      { value: "modern", label: "모던 · 절제된" },
+      { value: "natural", label: "내추럴 · 야외 예식" },
+    ],
+  },
+  {
+    name: "focusServices",
+    label: "강조할 스드메 영역",
+    type: "chips",
+    options: ["스튜디오", "드레스", "헤어 · 메이크업", "본식 디렉팅", "부케 · 소품"],
+  },
+  { name: "budgetRange", label: "예산 / 패키지 톤", placeholder: "예: 100~200만원대 실속형" },
+  { name: "weddingSchedule", label: "예식 일정", placeholder: "예: 2026년 가을 예식 예정" },
+  {
+    name: "customRequest",
+    label: "추가 요청",
+    type: "textarea",
+    placeholder: "예: 드레스와 본식 디렉팅을 더 고급스럽게 강조해 주세요.",
+  },
+];
+
+const weddingMoodGuide = {
+  romantic: {
+    label: "로맨틱 플라워",
+    colors: { primaryColor: "#5e4652", accentColor: "#d77ea6", surfaceColor: "#fff4f7" },
+    title: "꽃처럼 번지는 순간을\n가장 로맨틱하게\n완성해드립니다",
+  },
+  classic: {
+    label: "클래식 웨딩",
+    colors: { primaryColor: "#473b33", accentColor: "#b99362", surfaceColor: "#fff7ec" },
+    title: "시간이 지나도 우아한\n클래식 웨딩을\n정교하게 준비합니다",
+  },
+  modern: {
+    label: "모던 브라이덜",
+    colors: { primaryColor: "#20242b", accentColor: "#a7b0bd", surfaceColor: "#f3f5f7" },
+    title: "절제된 아름다움으로\n두 사람의 하루를\n선명하게 설계합니다",
+  },
+  natural: {
+    label: "내추럴 웨딩",
+    colors: { primaryColor: "#4f5f47", accentColor: "#b7c68a", surfaceColor: "#f7faef" },
+    title: "자연스럽고 따뜻한 결로\n두 사람의 계절을\n담아드립니다",
+  },
+};
+
+function buildWeddingContent(form) {
+  const mood = weddingMoodGuide[form.weddingMood] || weddingMoodGuide.romantic;
+  const focus = form.focusServices.length ? form.focusServices : ["스튜디오", "드레스", "헤어 · 메이크업"];
+  const siteName = form.siteName.trim() || weddingTemplateContent.brandName;
+  const budget = form.budgetRange.trim();
+  const schedule = form.weddingSchedule.trim();
+  const request = form.customRequest.trim();
+
+  return {
+    ...weddingTemplateContent,
+    ...mood.colors,
+    brandName: siteName,
+    eyebrow: `${mood.label} · ${focus.slice(0, 3).join(" · ")}`,
+    heroTitle: mood.title,
+    heroDescription: [
+      `${focus.join(", ")} 중심으로 두 분의 취향과 예산에 맞춘 스드메 페이지를 구성합니다.`,
+      budget ? `예산 방향은 ${budget} 기준으로 정리합니다.` : "",
+      schedule ? `${schedule}에 맞춰 준비 흐름을 보여줍니다.` : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    servicesTitle: `${focus[0]}부터\n상담 흐름까지 자연스럽게`,
+    packagesTitle: budget ? `${budget}\n맞춤 패키지` : "스드메 맞춤 패키지",
+    ctaTitle: `${siteName}에서\n가장 빛나는 준비를 시작하세요`,
+    ctaDescription: request || `${mood.label} 무드에 맞춰 상담, 셀렉, 본식 준비까지 부드럽게 이어집니다.`,
+    contactDescription: `${schedule || "예식 일정"}과 원하는 분위기를 남겨주시면 ${focus[0]} 중심으로 맞춤 구성을 제안해드립니다.`,
+    galleryTitle: `${mood.label} 무드 미리보기`,
+  };
+}
+
 function FlowerBadge() {
   return (
     <div className="relative h-14 w-14">
@@ -131,20 +214,53 @@ export default function WeddingTemplate() {
   const [scrolled, setScrolled] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showSetupModal, setShowSetupModal] = useState(false);
   const [isSavingSite, setIsSavingSite] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [previewNotice, setPreviewNotice] = useState("");
+  const [setupForm, setSetupForm] = useState({
+    siteName: weddingTemplateContent.brandName,
+    weddingMood: "romantic",
+    focusServices: ["스튜디오", "드레스", "헤어 · 메이크업"],
+    budgetRange: "100~200만원대 실속형",
+    weddingSchedule: "2026년 가을 예식 예정",
+    customRequest: "",
+  });
 
-  const handleStart = async () => {
+  const handleFormChange = (key, value) => {
+    setSetupForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleToggleOption = (key, value) => {
+    setSetupForm((prev) => {
+      const current = prev[key] || [];
+
+      return {
+        ...prev,
+        [key]: current.includes(value)
+          ? current.filter((item) => item !== value)
+          : [...current, value],
+      };
+    });
+  };
+
+  const handleStart = () => {
     if (!isLoggedIn) {
       setShowLoginPrompt(true);
       return;
     }
 
+    setErrorMessage("");
+    setShowSetupModal(true);
+  };
+
+  const handleSetupSubmit = async (event) => {
+    event.preventDefault();
     setIsSavingSite(true);
     setErrorMessage("");
 
     try {
+      const generatedContent = buildWeddingContent(setupForm);
       const response = await fetch(createApiUrl("/api/sites"), {
         method: "POST",
         headers: createAuthHeaders(accessToken, {
@@ -152,13 +268,14 @@ export default function WeddingTemplate() {
         }),
         body: JSON.stringify({
           templateType: "wedding",
-          siteName: weddingTemplateContent.brandName,
+          siteName: generatedContent.brandName,
           aiRequest: {
             templateId: "wedding",
-            source: "default-wedding-template",
+            source: "wedding-start-options",
+            ...setupForm,
           },
-          aiResponse: weddingTemplateContent,
-          puckData: createWeddingPuckDataFromTemplate(weddingTemplateContent),
+          aiResponse: generatedContent,
+          puckData: createWeddingPuckDataFromTemplate(generatedContent),
         }),
       });
       const payload = await parseJsonResponse(response);
@@ -167,6 +284,7 @@ export default function WeddingTemplate() {
         throw new Error(extractErrorMessage(payload, "웨딩 템플릿 저장에 실패했습니다."));
       }
 
+      setShowSetupModal(false);
       navigate(`/ai-editor/${payload.siteId}`);
     } catch (error) {
       setErrorMessage(error.message || "웨딩 템플릿 저장에 실패했습니다.");
@@ -783,6 +901,21 @@ export default function WeddingTemplate() {
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         onLogin={handleLoginPromptLogin}
+      />
+      <TemplateSetupModal
+        open={showSetupModal}
+        eyebrow="Wedding AI Setup"
+        title="예식 분위기에 맞춰 초안을 시작하세요"
+        description="스드메 템플릿은 무드, 중점 서비스, 예산과 일정이 첫 화면과 패키지 흐름에 반영됩니다."
+        fields={weddingSetupFields}
+        values={setupForm}
+        onChange={handleFormChange}
+        onToggle={handleToggleOption}
+        onSubmit={handleSetupSubmit}
+        onClose={() => setShowSetupModal(false)}
+        isSubmitting={isSavingSite}
+        errorMessage={errorMessage}
+        submitLabel="웨딩 초안 만들기"
       />
     </div>
   );

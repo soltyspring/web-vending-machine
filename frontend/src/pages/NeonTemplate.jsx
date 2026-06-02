@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LoginRequiredModal from "../components/LoginRequiredModal";
 import TemplateStartButton from "../components/TemplateStartButton";
+import TemplateSetupModal from "../components/TemplateSetupModal";
 import { useAuth } from "../context/useAuth";
 import {
   createApiUrl,
@@ -16,30 +17,159 @@ import {
 
 const orbitItems = ["DROP", "SIGNAL", "HYPE", "BOOST"];
 
+const neonSetupFields = [
+  { name: "siteName", label: "런칭 브랜드 / 캠페인명", placeholder: "예: NEON DROP" },
+  {
+    name: "launchType",
+    label: "런칭 유형",
+    type: "select",
+    options: [
+      { value: "product", label: "제품 출시" },
+      { value: "app", label: "앱 / 서비스 공개" },
+      { value: "creator", label: "크리에이터 캠페인" },
+      { value: "event", label: "행사 / 팝업 오픈" },
+    ],
+  },
+  {
+    name: "campaignGoals",
+    label: "강조할 목표",
+    type: "chips",
+    options: ["사전예약", "대기자 모집", "한정 판매", "커뮤니티 유입", "이벤트 참여"],
+  },
+  { name: "targetAudience", label: "타깃", placeholder: "예: 20대 얼리어답터와 크리에이터" },
+  { name: "launchSchedule", label: "공개 일정", placeholder: "예: D-7, 24시간 한정 공개" },
+  {
+    name: "intensity",
+    label: "화면 에너지",
+    type: "select",
+    options: [
+      { value: "flash", label: "Flash · 강렬한" },
+      { value: "hype", label: "Hype · 트렌디한" },
+      { value: "premium", label: "Premium · 선명한" },
+    ],
+  },
+  {
+    name: "customRequest",
+    label: "추가 요청",
+    type: "textarea",
+    placeholder: "예: 첫 화면에 사전예약과 한정 수량 느낌을 강하게 넣어 주세요.",
+  },
+];
+
+const launchTypeLabel = {
+  product: "Product Drop",
+  app: "App Launch",
+  creator: "Creator Campaign",
+  event: "Pop-up Event",
+};
+
+const intensityGuide = {
+  flash: {
+    title: "새로운 공개를\n가장 빠르게 터뜨리는 첫 화면",
+    cta: "런칭 시작하기",
+  },
+  hype: {
+    title: "기대감을 끌어올려\n사람들이 먼저 공유하게 만듭니다",
+    cta: "하이프 만들기",
+  },
+  premium: {
+    title: "선명한 메시지로\n브랜드의 첫 인상을 각인합니다",
+    cta: "프리미엄 공개",
+  },
+};
+
+function buildNeonContent(form) {
+  const siteName = form.siteName.trim() || neonTemplateContent.brandName;
+  const goals = form.campaignGoals.length ? form.campaignGoals : ["사전예약", "한정 판매", "이벤트 참여"];
+  const launchLabel = launchTypeLabel[form.launchType] || launchTypeLabel.product;
+  const intensity = intensityGuide[form.intensity] || intensityGuide.flash;
+  const audience = form.targetAudience.trim();
+  const schedule = form.launchSchedule.trim();
+  const request = form.customRequest.trim();
+
+  return {
+    ...neonTemplateContent,
+    brandName: siteName.toUpperCase(),
+    eyebrow: `${launchLabel} · ${goals.slice(0, 2).join(" · ")}`,
+    heroTitle: intensity.title,
+    heroDescription: [
+      audience ? `${audience}를 겨냥한 ${launchLabel.toLowerCase()} 페이지입니다.` : "",
+      `${goals.join(", ")} 흐름이 첫 화면부터 이어지도록 구성합니다.`,
+      request || "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    primaryCta: intensity.cta,
+    secondaryCta: goals[0] || neonTemplateContent.secondaryCta,
+    stats: [
+      { label: "Schedule", value: schedule || "D-07" },
+      { label: "Goal", value: goals[0] || "Drop" },
+      { label: "Signal", value: form.intensity.toUpperCase() },
+    ],
+    highlights: [launchLabel, ...goals, audience || "Target Boost"].slice(0, 4),
+    ctaTitle: `${siteName} 공개가 가까워졌다면`,
+    ctaDescription: `${schedule || "런칭 일정"}에 맞춰 방문자를 ${goals[0]} 흐름으로 빠르게 연결하세요.`,
+  };
+}
+
 export default function NeonTemplate() {
   const navigate = useNavigate();
   const { accessToken, isLoggedIn } = useAuth();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showSetupModal, setShowSetupModal] = useState(false);
   const [showCTA, setShowCTA] = useState(false);
   const [isSavingSite, setIsSavingSite] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [previewNotice, setPreviewNotice] = useState("");
+  const [setupForm, setSetupForm] = useState({
+    siteName: neonTemplateContent.brandName,
+    launchType: "product",
+    campaignGoals: ["사전예약", "한정 판매", "이벤트 참여"],
+    targetAudience: "20대 얼리어답터와 크리에이터",
+    launchSchedule: "D-7, 24시간 한정 공개",
+    intensity: "flash",
+    customRequest: "",
+  });
 
   const handlePreviewOnlyAction = (label) => {
     setPreviewNotice(`${label} 기능은 템플릿 미리보기용입니다.`);
     window.setTimeout(() => setPreviewNotice(""), 2200);
   };
 
-  const handleStart = async () => {
+  const handleFormChange = (key, value) => {
+    setSetupForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleToggleOption = (key, value) => {
+    setSetupForm((prev) => {
+      const current = prev[key] || [];
+
+      return {
+        ...prev,
+        [key]: current.includes(value)
+          ? current.filter((item) => item !== value)
+          : [...current, value],
+      };
+    });
+  };
+
+  const handleStart = () => {
     if (!isLoggedIn) {
       setShowLoginPrompt(true);
       return;
     }
 
+    setErrorMessage("");
+    setShowSetupModal(true);
+  };
+
+  const handleSetupSubmit = async (event) => {
+    event.preventDefault();
     setIsSavingSite(true);
     setErrorMessage("");
 
     try {
+      const generatedContent = buildNeonContent(setupForm);
       const response = await fetch(createApiUrl("/api/sites"), {
         method: "POST",
         headers: createAuthHeaders(accessToken, {
@@ -47,13 +177,14 @@ export default function NeonTemplate() {
         }),
         body: JSON.stringify({
           templateType: "neon",
-          siteName: neonTemplateContent.brandName,
+          siteName: generatedContent.brandName,
           aiRequest: {
             templateId: "neon",
-            source: "default-neon-template",
+            source: "neon-start-options",
+            ...setupForm,
           },
-          aiResponse: neonTemplateContent,
-          puckData: createNeonPuckDataFromTemplate(neonTemplateContent),
+          aiResponse: generatedContent,
+          puckData: createNeonPuckDataFromTemplate(generatedContent),
         }),
       });
       const payload = await parseJsonResponse(response);
@@ -62,6 +193,7 @@ export default function NeonTemplate() {
         throw new Error(extractErrorMessage(payload, "네온 템플릿 저장에 실패했습니다."));
       }
 
+      setShowSetupModal(false);
       navigate(`/ai-editor/${payload.siteId}`);
     } catch (error) {
       setErrorMessage(error.message || "네온 템플릿 저장에 실패했습니다.");
@@ -288,6 +420,21 @@ export default function NeonTemplate() {
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         onLogin={handleLoginPromptLogin}
+      />
+      <TemplateSetupModal
+        open={showSetupModal}
+        eyebrow="Neon AI Setup"
+        title="런칭 목적에 맞춰 첫 화면을 구성하세요"
+        description="네온 템플릿은 런칭 유형, 목표, 공개 일정, 타깃이 히어로 카피와 수치 배지에 반영됩니다."
+        fields={neonSetupFields}
+        values={setupForm}
+        onChange={handleFormChange}
+        onToggle={handleToggleOption}
+        onSubmit={handleSetupSubmit}
+        onClose={() => setShowSetupModal(false)}
+        isSubmitting={isSavingSite}
+        errorMessage={errorMessage}
+        submitLabel="네온 초안 만들기"
       />
     </div>
   );
