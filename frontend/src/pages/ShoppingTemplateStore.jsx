@@ -850,11 +850,11 @@ export default function ShoppingTemplateStore() {
                           : undefined
                       }
                     ></div>
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 sm:p-6">
                       <p className="text-xs font-black tracking-[0.15em] text-white/75">
                         {index === 0 ? templateContent.heroBadge : item.sub}
                       </p>
-                      <h2 className="mt-2 max-w-[360px] text-[2rem] font-black leading-[1.02] tracking-[-0.06em] text-white md:text-[2.35rem]">
+                      <h2 className="mt-2 max-w-[21rem] break-keep pl-1 text-[1.7rem] font-black leading-[1.12] text-white sm:text-[2rem] md:text-[2.35rem]">
                         {index === 0
                           ? heroTitleLines.map((line, lineIndex) => (
                               <span key={`${line}-${lineIndex}`}>

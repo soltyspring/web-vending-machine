@@ -98,9 +98,9 @@ export const neonPuckConfig = {
             </header>
 
             <div className="grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-              <div>
+              <div className="pl-1 sm:pl-2 lg:pl-0">
                 <p className="text-xs font-black tracking-[0.32em] text-cyan-200">{eyebrow}</p>
-                <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.95] tracking-[-0.06em] md:text-7xl lg:text-8xl">
+                <h1 className="mt-5 max-w-[24rem] break-keep text-[2.65rem] font-black leading-[1.06] min-[430px]:text-5xl md:max-w-4xl md:text-7xl lg:text-8xl">
                   {lineBreak(title).map((line, index) => (
                     <span key={`${line}-${index}`}>
                       {line}
@@ -108,7 +108,7 @@ export const neonPuckConfig = {
                     </span>
                   ))}
                 </h1>
-                <p className="mt-6 max-w-2xl text-base font-semibold leading-7 text-white/62 md:text-lg">
+                <p className="mt-6 max-w-2xl break-keep text-base font-semibold leading-7 text-white/62 md:text-lg">
                   {description}
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -179,7 +179,7 @@ export const neonPuckConfig = {
       render: ({ title, features = defaultFeatures }) => (
         <section className="bg-[#05060a] px-5 py-20 text-white md:px-10">
           <div className="mx-auto max-w-[1280px]">
-            <h2 className="max-w-3xl text-4xl font-black tracking-[-0.06em] md:text-6xl">{title}</h2>
+            <h2 className="max-w-3xl break-keep text-3xl font-black leading-tight md:text-6xl">{title}</h2>
             <div className="mt-10 grid gap-4 md:grid-cols-3">
               {features.map((item, index) => (
                 <article key={`${item.title}-${index}`} className="rounded-[30px] border border-white/10 bg-white/[0.04] p-6">
@@ -213,7 +213,7 @@ export const neonPuckConfig = {
       render: ({ title, highlights = defaultHighlights.map((label) => ({ label })) }) => (
         <section className="bg-lime-300 px-5 py-20 text-black md:px-10">
           <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <h2 className="text-5xl font-black leading-[0.95] tracking-[-0.07em] md:text-7xl">{title}</h2>
+            <h2 className="max-w-[24rem] break-keep text-[2.65rem] font-black leading-[1.06] min-[430px]:text-5xl md:max-w-none md:text-7xl">{title}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               {highlights.map((item, index) => (
                 <div key={`${item.label}-${index}`} className="rounded-[26px] border-2 border-black bg-white px-5 py-6 shadow-[8px_8px_0_#000]">

@@ -274,18 +274,18 @@ export default function NeonTemplate() {
           </header>
 
           <div className="grid gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-            <div>
+            <div className="pl-1 sm:pl-2 lg:pl-0">
               <p className="text-xs font-black tracking-[0.32em] text-cyan-200">
                 {neonTemplateContent.eyebrow}
               </p>
-              <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.95] tracking-[-0.06em] md:text-7xl lg:text-8xl">
+              <h1 className="mt-5 max-w-[24rem] break-keep text-[2.65rem] font-black leading-[1.06] min-[430px]:text-5xl md:max-w-4xl md:text-7xl lg:text-8xl">
                 새로운 브랜드를
                 <br />
                 가장 크게 터뜨리는
                 <br />
                 첫 화면
               </h1>
-              <p className="mt-6 max-w-2xl text-base font-semibold leading-7 text-white/62 md:text-lg">
+              <p className="mt-6 max-w-2xl break-keep text-base font-semibold leading-7 text-white/62 md:text-lg">
                 {neonTemplateContent.heroDescription}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -356,7 +356,7 @@ export default function NeonTemplate() {
 
       <section className="bg-lime-300 px-5 py-20 text-black md:px-10">
         <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-          <h2 className="text-5xl font-black leading-[0.95] tracking-[-0.07em] md:text-7xl">
+          <h2 className="max-w-[24rem] break-keep text-[2.65rem] font-black leading-[1.06] min-[430px]:text-5xl md:max-w-none md:text-7xl">
             한 화면에서 보이는 런칭 포인트
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -372,7 +372,7 @@ export default function NeonTemplate() {
 
       <section className="bg-[#05060a] px-5 py-20 text-white md:px-10">
         <div className="mx-auto max-w-[1280px]">
-          <h2 className="max-w-3xl text-4xl font-black tracking-[-0.06em] md:text-6xl">
+          <h2 className="max-w-3xl break-keep text-3xl font-black leading-tight md:text-6xl">
             왜 이 템플릿이 튀는가
           </h2>
           <div className="mt-10 grid gap-4 md:grid-cols-3">

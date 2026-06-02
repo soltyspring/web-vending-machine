@@ -216,7 +216,7 @@ export const shoppingPuckConfig = {
                   <p className="text-xs font-black tracking-[0.15em] text-white/75">
                     {index === 0 ? badge : item.category}
                   </p>
-                  <h1 className="mt-2 max-w-[370px] text-[2rem] font-black leading-[1.02] tracking-[-0.06em] md:text-[2.35rem]">
+                  <h1 className="mt-2 max-w-[370px] break-keep pl-1 text-[1.7rem] font-black leading-[1.12] md:text-[2.35rem]">
                     {index === 0
                       ? textLines(title).map((line) => <span key={line} className="block">{line}</span>)
                       : item.name}

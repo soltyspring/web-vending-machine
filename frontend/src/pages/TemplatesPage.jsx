@@ -71,16 +71,16 @@ function StatusBadge({ available }) {
 
 function ShoppingPreview({ item }) {
   return (
-    <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-rose-100 via-orange-50 to-amber-100 p-5">
-      <div className="absolute inset-x-6 top-6 h-28 rounded-[24px] border border-white/60 bg-white/30" />
-      <div className="relative flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-5">
-        <p className="text-sm font-black text-rose-400">{item.sub}</p>
+    <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-rose-100 via-orange-50 to-amber-100 p-4 sm:p-5">
+      <div className="absolute inset-x-5 top-5 h-24 rounded-[24px] border border-white/60 bg-white/30 sm:inset-x-6 sm:top-6 sm:h-28" />
+      <div className="relative flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-4 sm:p-5">
+        <p className="break-keep text-xs font-black text-rose-400 sm:text-sm">{item.sub}</p>
         <div className="grid grid-cols-3 gap-2">
-          <span className="h-20 rounded-2xl bg-white/45" />
-          <span className="h-20 rounded-2xl bg-white/30" />
-          <span className="h-20 rounded-2xl bg-white/45" />
+          <span className="h-16 rounded-2xl bg-white/45 sm:h-20" />
+          <span className="h-16 rounded-2xl bg-white/30 sm:h-20" />
+          <span className="h-16 rounded-2xl bg-white/45 sm:h-20" />
         </div>
-        <p className="whitespace-pre-line text-[1.65rem] font-black leading-[1.02] tracking-[-0.05em] text-slate-950">
+        <p className="max-w-[13rem] whitespace-pre-line break-keep pl-1 text-[1.45rem] font-black leading-[1.08] text-slate-950 sm:text-[1.65rem]">
           {item.heading}
         </p>
       </div>
@@ -90,11 +90,11 @@ function ShoppingPreview({ item }) {
 
 function WeddingPreview({ item }) {
   return (
-    <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-[#fff3f7] to-[#f5e6ee] p-5">
-      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-5">
-        <p className="text-sm font-black text-[#cc8ea7]">{item.sub}</p>
+    <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-[#fff3f7] to-[#f5e6ee] p-4 sm:p-5">
+      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-4 sm:p-5">
+        <p className="break-keep text-xs font-black text-[#cc8ea7] sm:text-sm">{item.sub}</p>
         <div className="flex justify-center">
-          <div className="relative h-36 w-28">
+          <div className="relative h-32 w-24 sm:h-36 sm:w-28">
             <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full bg-white/90" />
             <div className="absolute left-1/2 top-10 h-10 w-14 -translate-x-1/2 rounded-[20px] bg-white/85" />
             <div
@@ -103,7 +103,7 @@ function WeddingPreview({ item }) {
             />
           </div>
         </div>
-        <p className="whitespace-pre-line text-[1.65rem] font-black leading-[1.02] tracking-[-0.05em] text-[#5a4650]">
+        <p className="max-w-[13rem] whitespace-pre-line break-keep pl-1 text-[1.45rem] font-black leading-[1.08] text-[#5a4650] sm:text-[1.65rem]">
           {item.heading}
         </p>
       </div>
@@ -116,19 +116,19 @@ function NeonPreview({ item }) {
     <div className="relative h-full overflow-hidden rounded-[24px] bg-[#05060a] p-5 text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(34,211,238,0.34),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(236,72,153,0.27),transparent_30%),radial-gradient(circle_at_48%_86%,rgba(163,230,53,0.2),transparent_34%)]" />
       <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:32px_32px]" />
-      <div className="relative flex h-full flex-col justify-between rounded-[20px] border border-white/15 bg-white/[0.04] p-5">
+      <div className="relative flex h-full flex-col justify-between rounded-[20px] border border-white/15 bg-white/[0.04] p-4 sm:p-5">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-black tracking-[0.18em] text-cyan-200">{item.sub}</p>
+          <p className="break-keep text-xs font-black tracking-[0.12em] text-cyan-200 sm:text-sm">{item.sub}</p>
           <span className="rounded-full bg-lime-300 px-3 py-1 text-[10px] font-black text-black">NEW</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {["D-07", "98%", "24H"].map((stat) => (
-            <span key={stat} className="rounded-2xl border border-white/10 bg-black/30 p-3 text-center text-lg font-black">
+            <span key={stat} className="rounded-2xl border border-white/10 bg-black/30 p-2 text-center text-base font-black sm:p-3 sm:text-lg">
               {stat}
             </span>
           ))}
         </div>
-        <p className="whitespace-pre-line text-[2rem] font-black leading-[0.92] tracking-[-0.07em]">
+        <p className="whitespace-pre-line break-keep pl-1 text-[1.65rem] font-black leading-[1] sm:text-[2rem]">
           {item.heading}
         </p>
       </div>
@@ -149,15 +149,15 @@ function ComingSoonPreview({ item }) {
         toneByPreview[item.preview] || toneByPreview.business
       } p-5 opacity-70`}
     >
-      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/35 p-5">
-        <p className="text-sm font-black opacity-70">{item.sub}</p>
+      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/35 p-4 sm:p-5">
+        <p className="break-keep text-xs font-black opacity-70 sm:text-sm">{item.sub}</p>
         <div className="grid grid-cols-2 gap-2">
           <span className="h-16 rounded-2xl bg-white/25" />
           <span className="h-16 rounded-2xl bg-white/15" />
           <span className="h-16 rounded-2xl bg-white/15" />
           <span className="h-16 rounded-2xl bg-white/25" />
         </div>
-        <p className="whitespace-pre-line text-[1.6rem] font-black leading-[1.05] tracking-[-0.05em]">
+        <p className="whitespace-pre-line break-keep pl-1 text-[1.4rem] font-black leading-[1.08] sm:text-[1.6rem]">
           {item.heading}
         </p>
       </div>
@@ -178,13 +178,13 @@ function TemplatePreview({ item }) {
 function TemplateCard({ item }) {
   const content = (
     <article className="group flex h-full flex-col">
-      <div className="h-[320px] overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.13)]">
+      <div className="h-[300px] overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.13)] sm:h-[320px]">
         <TemplatePreview item={item} />
       </div>
       <div className="mt-4 flex min-h-[48px] items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-[18px] font-black leading-none text-slate-900">{item.title}</p>
-          <p className="mt-1 text-sm font-semibold leading-none text-slate-500">{item.category}</p>
+        <div className="min-w-0 pl-1">
+          <p className="truncate text-[17px] font-black leading-tight text-slate-900 sm:text-[18px]">{item.title}</p>
+          <p className="mt-1 break-keep text-sm font-semibold leading-tight text-slate-500">{item.category}</p>
         </div>
         <StatusBadge available={item.available} />
       </div>
@@ -219,7 +219,7 @@ export default function TemplatesPage() {
           </div>
         </div>
 
-        <div className="mt-12 grid items-start gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid items-start gap-x-6 gap-y-10 min-[760px]:grid-cols-2 lg:grid-cols-3">
           {templates.map((item) => (
             <TemplateCard key={item.id} item={item} />
           ))}

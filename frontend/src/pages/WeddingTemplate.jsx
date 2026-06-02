@@ -398,7 +398,7 @@ export default function WeddingTemplate() {
               <div className="pointer-events-none absolute right-[-40px] top-10 h-64 w-64 rounded-full bg-[#f7eadc]/70 blur-3xl" />
 
               <div className="mx-auto flex w-full max-w-[1200px] flex-col px-6 pb-20 pt-12 md:flex-row md:items-center md:px-10 md:pb-28 md:pt-20">
-                <div className="flex-1">
+                <div className="flex-1 pl-1 sm:pl-2 md:pl-0">
                   <div className="inline-flex items-center gap-2 rounded-full border border-[#f0dfe6] bg-white/80 px-4 py-1.5">
                     <span className="h-2 w-2 rounded-full bg-[#e6b6c9]" />
                     <span className="text-[11px] font-bold tracking-[0.15em] text-[#9f8591]">
@@ -406,7 +406,7 @@ export default function WeddingTemplate() {
                     </span>
                   </div>
 
-                  <h1 className="mt-6 text-[3.2rem] font-black leading-[1.02] tracking-[-0.07em] text-[#4f3e47] md:text-[4.8rem]">
+                  <h1 className="mt-6 max-w-[23rem] break-keep text-[2.45rem] font-black leading-[1.12] text-[#4f3e47] min-[430px]:text-[2.85rem] md:max-w-none md:text-[4.2rem] lg:text-[4.8rem]">
                     당신의 결혼식을
                     <br />
                     가장 아름답게,
@@ -416,7 +416,7 @@ export default function WeddingTemplate() {
                     </span>
                   </h1>
 
-                  <p className="mt-5 max-w-[430px] text-[15px] font-medium leading-[1.8] text-[#8f7884]">
+                  <p className="mt-5 max-w-[430px] break-keep pl-1 text-[15px] font-medium leading-[1.8] text-[#8f7884] md:pl-0">
                     스튜디오, 드레스, 헤어 · 메이크업, 본식 디렉팅까지.
                     <br />
                     두 분의 취향과 예산에 맞춰 가장 설레는 웨딩 페이지를 제안합니다.

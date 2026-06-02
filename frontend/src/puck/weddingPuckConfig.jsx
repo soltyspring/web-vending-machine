@@ -183,20 +183,20 @@ export const weddingPuckConfig = {
         accentColor: weddingTemplateContent.accentColor,
       },
       render: ({ eyebrow, title, description, primaryButtonText, secondaryButtonText, backgroundColor, primaryColor, accentColor }) => (
-        <section className="overflow-hidden px-6 py-20 md:px-10" style={{ backgroundColor }}>
+        <section className="overflow-hidden px-6 py-16 md:px-10 md:py-20" style={{ backgroundColor }}>
           <div className="mx-auto grid w-full max-w-[1200px] gap-12 md:grid-cols-[1.05fr_0.95fr] md:items-center">
-            <div>
+            <div className="pl-1 sm:pl-2 md:pl-0">
               <div className="inline-flex rounded-full border border-[#f0dfe6] bg-white/80 px-4 py-2 text-[11px] font-black tracking-[0.15em] text-[#9f8591]">
                 {eyebrow}
               </div>
-              <h1 className="mt-6 text-[3.1rem] font-black leading-[1.02] tracking-[-0.07em] text-[#4f3e47] md:text-[4.8rem]">
+              <h1 className="mt-6 max-w-[23rem] break-keep text-[2.4rem] font-black leading-[1.12] text-[#4f3e47] min-[430px]:text-[2.85rem] md:max-w-none md:text-[4.2rem] lg:text-[4.8rem]">
                 {lines(title).map((line, index) => (
                   <span key={`${line}-${index}`} className="block">
                     {line}
                   </span>
                 ))}
               </h1>
-              <p className="mt-5 max-w-[540px] whitespace-pre-line text-[15px] font-medium leading-[1.8] text-[#8f7884]">{description}</p>
+              <p className="mt-5 max-w-[540px] whitespace-pre-line break-keep pl-1 text-[15px] font-medium leading-[1.8] text-[#8f7884] md:pl-0">{description}</p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <span className="rounded-full px-7 py-3.5 text-[13px] font-bold text-white" style={{ backgroundColor: primaryColor }}>
                   {primaryButtonText}
