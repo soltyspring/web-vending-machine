@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import FreeStartButton from "./FreeStartButton";
 import { useAuth } from "../context/useAuth";
-import wvmLogo from "../assets/wvm-logo.svg";
 
 const menu = [
   { label: "메인", to: "/" },
@@ -20,12 +19,13 @@ export default function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-[#f5f5f6]/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-3 px-3 sm:h-20 sm:px-5 md:px-8">
-        <Link to="/" className="flex min-w-0 flex-1 items-center">
-          <img
-            src={wvmLogo}
-            alt="Web Vending Machine"
-            className="h-10 w-10 shrink-0 object-left object-cover min-[520px]:w-48"
-          />
+        <Link to="/" className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white">
+            W
+          </span>
+          <span className="hidden truncate text-xl font-black tracking-[0.08em] text-slate-700 min-[560px]:block lg:text-2xl">
+            Web Vending Machine
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
