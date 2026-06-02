@@ -516,7 +516,7 @@ export default function ShoppingTemplateStore() {
   };
 
   const handlePreviewOnlyAction = (label) => {
-    setPreviewNotice(`${label}은 템플릿 미리보기용 기능입니다.`);
+    setPreviewNotice(`${label} 기능은 템플릿 미리보기용입니다.`);
     window.setTimeout(() => setPreviewNotice(""), 2200);
   };
 
@@ -789,17 +789,17 @@ export default function ShoppingTemplateStore() {
                   <span>장바구니</span>
                   <button
                     type="button"
-                    onClick={() => handlePreviewOnlyAction("로그인")}
+                    onClick={() => handlePreviewOnlyAction("미리보기 로그인")}
                     className="rounded-md border border-white/15 px-3 py-1.5 text-white transition hover:bg-white hover:text-black"
                   >
-                    로그인
+                    미리보기 로그인
                   </button>
                   <button
                     type="button"
-                    onClick={() => handlePreviewOnlyAction("회원가입")}
+                    onClick={() => handlePreviewOnlyAction("미리보기 회원가입")}
                     className="rounded-md bg-white px-3 py-1.5 font-bold text-black transition hover:-translate-y-0.5"
                   >
-                    회원가입
+                    미리보기 회원가입
                   </button>
                 </div>
               </div>

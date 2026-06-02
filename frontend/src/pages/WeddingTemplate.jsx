@@ -133,6 +133,7 @@ export default function WeddingTemplate() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [isSavingSite, setIsSavingSite] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [previewNotice, setPreviewNotice] = useState("");
 
   const handleStart = async () => {
     if (!isLoggedIn) {
@@ -177,6 +178,11 @@ export default function WeddingTemplate() {
   const handleLoginPromptLogin = () => {
     setShowLoginPrompt(false);
     navigate("/login");
+  };
+
+  const handlePreviewOnlyAction = (label) => {
+    setPreviewNotice(`${label} 기능은 템플릿 미리보기용입니다.`);
+    window.setTimeout(() => setPreviewNotice(""), 2200);
   };
 
   useEffect(() => {
@@ -249,10 +255,18 @@ export default function WeddingTemplate() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="rounded-full border border-[#eadde3] px-4 py-2 text-[12px] font-bold text-[#7a6670] transition hover:border-[#d9c3cd] hover:text-[#4f3e47]">
+              <button
+                type="button"
+                onClick={() => handlePreviewOnlyAction("상담문의")}
+                className="rounded-full border border-[#eadde3] px-4 py-2 text-[12px] font-bold text-[#7a6670] transition hover:border-[#d9c3cd] hover:text-[#4f3e47]"
+              >
                 상담문의
               </button>
-              <button className="rounded-full bg-[#5e4652] px-5 py-2 text-[12px] font-bold text-white shadow-lg shadow-[#5e4652]/15 transition hover:-translate-y-0.5">
+              <button
+                type="button"
+                onClick={() => handlePreviewOnlyAction("예약하기")}
+                className="rounded-full bg-[#5e4652] px-5 py-2 text-[12px] font-bold text-white shadow-lg shadow-[#5e4652]/15 transition hover:-translate-y-0.5"
+              >
                 예약하기
               </button>
             </div>
@@ -601,7 +615,11 @@ export default function WeddingTemplate() {
                     ))}
                   </div>
 
-                  <button className="mt-7 w-full rounded-full bg-[#5e4652] px-6 py-3.5 text-[13px] font-bold text-white transition hover:-translate-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handlePreviewOnlyAction("패키지 상담")}
+                    className="mt-7 w-full rounded-full bg-[#5e4652] px-6 py-3.5 text-[13px] font-bold text-white transition hover:-translate-y-0.5"
+                  >
                     이 패키지 상담하기
                   </button>
                 </article>
@@ -657,7 +675,11 @@ export default function WeddingTemplate() {
                 <br />
                 맞춤형 스드메 구성을 빠르게 제안해드립니다.
               </p>
-              <button className="mt-6 rounded-full bg-[#5e4652] px-7 py-3.5 text-[13px] font-bold text-white">
+              <button
+                type="button"
+                onClick={() => handlePreviewOnlyAction("무료 상담 예약")}
+                className="mt-6 rounded-full bg-[#5e4652] px-7 py-3.5 text-[13px] font-bold text-white"
+              >
                 무료 상담 예약
               </button>
             </div>
@@ -747,6 +769,13 @@ export default function WeddingTemplate() {
         <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-5">
           <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600 shadow-lg">
             {errorMessage}
+          </p>
+        </div>
+      ) : null}
+      {previewNotice ? (
+        <div className="fixed inset-x-0 bottom-28 z-[70] flex justify-center px-5">
+          <p className="rounded-full border border-white/40 bg-[#5e4652] px-5 py-3 text-xs font-black text-white shadow-2xl shadow-[#5e4652]/25">
+            {previewNotice}
           </p>
         </div>
       ) : null}

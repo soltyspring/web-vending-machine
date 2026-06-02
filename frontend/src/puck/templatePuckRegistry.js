@@ -9,6 +9,11 @@ import {
   initialWeddingPuckData,
   weddingPuckConfig,
 } from "./weddingPuckConfig";
+import {
+  createNeonPuckDataFromTemplate,
+  initialNeonPuckData,
+  neonPuckConfig,
+} from "./neonPuckConfig";
 
 const registry = {
   shopping: {
@@ -21,6 +26,12 @@ const registry = {
     config: weddingPuckConfig,
     initialData: initialWeddingPuckData,
     createData: createWeddingPuckDataFromTemplate,
+    isLegacyData: () => false,
+  },
+  neon: {
+    config: neonPuckConfig,
+    initialData: initialNeonPuckData,
+    createData: createNeonPuckDataFromTemplate,
     isLegacyData: () => false,
   },
 };

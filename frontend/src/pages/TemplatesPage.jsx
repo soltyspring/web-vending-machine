@@ -5,194 +5,223 @@ const templates = [
     id: "shopping",
     title: "MOOD SHOP",
     category: "쇼핑몰",
-    theme: "from-rose-100 via-orange-50 to-amber-100",
-    accent: "text-rose-400",
-    heading: "감각적인 쇼핑몰을\n지금 바로 시작하세요",
     sub: "Shopping Template",
+    heading: "감각적인 쇼핑몰을\n지금 바로 시작하세요",
     available: true,
+    preview: "shopping",
+  },
+  {
+    id: "wedding",
+    title: "LUMIÈRE",
+    category: "스드메 · 웨딩",
+    sub: "Wedding Template",
+    heading: "당신의 결혼식을\n빛나게 해드립니다",
+    available: true,
+    preview: "wedding",
+  },
+  {
+    id: "neon",
+    title: "NEON DROP",
+    category: "런칭 · 쇼케이스",
+    sub: "Neon Template",
+    heading: "LAUNCH\nLIKE A FLASH",
+    available: true,
+    preview: "neon",
   },
   {
     id: "business",
     title: "Volt.X",
     category: "비즈니스 홍보",
-    theme: "from-orange-700 via-red-500 to-black",
-    accent: "text-white/80",
-    heading: "The Center Of The\nFuture Of Brand.",
-    sub: "View More Comfortably\nOn Mobile Screen.",
+    sub: "Coming Soon",
+    heading: "The Center Of The\nFuture Of Brand",
     available: false,
+    preview: "business",
   },
   {
     id: "reservation",
-    title: "Reservation",
-    category: "예약",
-    theme: "from-stone-100 via-white to-stone-200",
-    accent: "text-stone-500",
-    heading: "감각적인 예약 페이지를\n간단하게 시작해 보세요",
-    sub: "Accommodation",
+    title: "Stayline",
+    category: "예약 · 숙박",
+    sub: "Coming Soon",
+    heading: "예약 페이지를\n간단하게 시작하세요",
     available: false,
+    preview: "reservation",
   },
   {
     id: "blog",
     title: "ZIGULAB",
     category: "블로그 · 미디어",
-    theme: "from-lime-300 via-lime-400 to-green-300",
-    accent: "text-stone-700",
-    heading: "지금 바로 시작하는\n콘텐츠 페이지",
-    sub: "ZIGULAB",
+    sub: "Coming Soon",
+    heading: "콘텐츠 페이지를\n바로 시작하세요",
     available: false,
+    preview: "blog",
   },
 ];
 
+function StatusBadge({ available }) {
+  return (
+    <span
+      className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${
+        available ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
+      }`}
+    >
+      {available ? "사용 가능" : "준비 중"}
+    </span>
+  );
+}
+
+function ShoppingPreview({ item }) {
+  return (
+    <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-rose-100 via-orange-50 to-amber-100 p-5">
+      <div className="absolute inset-x-6 top-6 h-28 rounded-[24px] border border-white/60 bg-white/30" />
+      <div className="relative flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-5">
+        <p className="text-sm font-black text-rose-400">{item.sub}</p>
+        <div className="grid grid-cols-3 gap-2">
+          <span className="h-20 rounded-2xl bg-white/45" />
+          <span className="h-20 rounded-2xl bg-white/30" />
+          <span className="h-20 rounded-2xl bg-white/45" />
+        </div>
+        <p className="whitespace-pre-line text-[1.65rem] font-black leading-[1.02] tracking-[-0.05em] text-slate-950">
+          {item.heading}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function WeddingPreview({ item }) {
+  return (
+    <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-[#fff3f7] to-[#f5e6ee] p-5">
+      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-5">
+        <p className="text-sm font-black text-[#cc8ea7]">{item.sub}</p>
+        <div className="flex justify-center">
+          <div className="relative h-36 w-28">
+            <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full bg-white/90" />
+            <div className="absolute left-1/2 top-10 h-10 w-14 -translate-x-1/2 rounded-[20px] bg-white/85" />
+            <div
+              className="absolute left-1/2 top-20 h-20 w-28 -translate-x-1/2 bg-white/90"
+              style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
+            />
+          </div>
+        </div>
+        <p className="whitespace-pre-line text-[1.65rem] font-black leading-[1.02] tracking-[-0.05em] text-[#5a4650]">
+          {item.heading}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function NeonPreview({ item }) {
+  return (
+    <div className="relative h-full overflow-hidden rounded-[24px] bg-[#05060a] p-5 text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(34,211,238,0.34),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(236,72,153,0.27),transparent_30%),radial-gradient(circle_at_48%_86%,rgba(163,230,53,0.2),transparent_34%)]" />
+      <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="relative flex h-full flex-col justify-between rounded-[20px] border border-white/15 bg-white/[0.04] p-5">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-black tracking-[0.18em] text-cyan-200">{item.sub}</p>
+          <span className="rounded-full bg-lime-300 px-3 py-1 text-[10px] font-black text-black">NEW</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {["D-07", "98%", "24H"].map((stat) => (
+            <span key={stat} className="rounded-2xl border border-white/10 bg-black/30 p-3 text-center text-lg font-black">
+              {stat}
+            </span>
+          ))}
+        </div>
+        <p className="whitespace-pre-line text-[2rem] font-black leading-[0.92] tracking-[-0.07em]">
+          {item.heading}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ComingSoonPreview({ item }) {
+  const toneByPreview = {
+    business: "from-orange-700 via-red-500 to-black text-white",
+    reservation: "from-stone-100 via-white to-stone-200 text-slate-900",
+    blog: "from-lime-300 via-lime-400 to-green-300 text-slate-900",
+  };
+
+  return (
+    <div
+      className={`relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br ${
+        toneByPreview[item.preview] || toneByPreview.business
+      } p-5 opacity-70`}
+    >
+      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/35 p-5">
+        <p className="text-sm font-black opacity-70">{item.sub}</p>
+        <div className="grid grid-cols-2 gap-2">
+          <span className="h-16 rounded-2xl bg-white/25" />
+          <span className="h-16 rounded-2xl bg-white/15" />
+          <span className="h-16 rounded-2xl bg-white/15" />
+          <span className="h-16 rounded-2xl bg-white/25" />
+        </div>
+        <p className="whitespace-pre-line text-[1.6rem] font-black leading-[1.05] tracking-[-0.05em]">
+          {item.heading}
+        </p>
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center bg-white/35">
+        <span className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">준비 중</span>
+      </div>
+    </div>
+  );
+}
+
+function TemplatePreview({ item }) {
+  if (item.preview === "shopping") return <ShoppingPreview item={item} />;
+  if (item.preview === "wedding") return <WeddingPreview item={item} />;
+  if (item.preview === "neon") return <NeonPreview item={item} />;
+  return <ComingSoonPreview item={item} />;
+}
+
+function TemplateCard({ item }) {
+  const content = (
+    <article className="group flex h-full flex-col">
+      <div className="h-[320px] overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.13)]">
+        <TemplatePreview item={item} />
+      </div>
+      <div className="mt-4 flex min-h-[48px] items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[18px] font-black leading-none text-slate-900">{item.title}</p>
+          <p className="mt-1 text-sm font-semibold leading-none text-slate-500">{item.category}</p>
+        </div>
+        <StatusBadge available={item.available} />
+      </div>
+    </article>
+  );
+
+  if (!item.available) return <div>{content}</div>;
+
+  return (
+    <Link to={`/templates/${item.id}`} className="block">
+      {content}
+    </Link>
+  );
+}
+
 export default function TemplatesPage() {
   return (
-    <section className="min-h-screen px-5 pt-28 pb-20 md:px-8">
+    <section className="min-h-screen px-5 pb-20 pt-28 md:px-8">
       <div className="mx-auto w-full max-w-[1400px]">
-        <h1 className="text-5xl font-black tracking-[-0.06em] text-slate-950 md:text-7xl">
-          템플릿
-        </h1>
-        <p className="mt-4 text-lg font-medium text-slate-500">
-          원하는 템플릿을 골라 나만의 웹사이트를 만들어 보세요
-        </p>
-
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {templates.slice(0, 1).map((item) => (
-            <div key={item.id} className="group">
-              {item.available ? (
-                <Link to={`/templates/${item.id}`}>
-                  <div
-                    className={`relative h-[320px] overflow-hidden rounded-[20px] bg-gradient-to-br ${item.theme} p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]`}
-                  >
-                    <div className="flex h-full flex-col justify-between rounded-[16px] border border-white/30 p-5">
-                      <div className={`whitespace-pre-line text-sm font-semibold ${item.accent}`}>
-                        {item.sub}
-                      </div>
-                      <div className="whitespace-pre-line text-2xl font-black leading-[1.1] tracking-[-0.05em] text-slate-900">
-                        {item.heading}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ) : (
-                <div
-                  className={`relative h-[320px] overflow-hidden rounded-[20px] bg-gradient-to-br ${item.theme} p-5 opacity-50 shadow-[0_20px_60px_rgba(15,23,42,0.08)]`}
-                >
-                  <div className="flex h-full flex-col justify-between rounded-[16px] border border-white/30 p-5">
-                    <div className={`whitespace-pre-line text-sm font-semibold ${item.accent}`}>
-                      {item.sub}
-                    </div>
-                    <div className="whitespace-pre-line text-2xl font-black leading-[1.1] tracking-[-0.05em] text-slate-900">
-                      {item.heading}
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center rounded-[20px] bg-white/60">
-                    <span className="rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white">
-                      준비 중
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-3 flex items-center gap-2 text-lg tracking-[-0.03em]">
-                <span className="font-semibold text-slate-800">{item.title}</span>
-                <span className="text-slate-500">{item.category}</span>
-                {item.available && (
-                  <span className="ml-auto rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                    사용 가능
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-
-          <Link to="/templates/wedding" className="group block">
-  <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fff3f7] to-[#f5e6ee] p-5 transition hover:-translate-y-1 hover:shadow-xl">
-    <div className="absolute right-4 top-4 h-14 w-14 rounded-full bg-white/40 blur-sm" />
-
-    <div className="flex h-[280px] flex-col justify-between rounded-[24px] border border-white/50 p-5">
-      <p className="text-sm font-bold text-[#cc8ea7]">Wedding Template</p>
-
-      <div className="flex items-center justify-center">
-        <div className="relative h-40 w-28">
-          <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full bg-white/90" />
-          <div className="absolute left-1/2 top-10 h-10 w-14 -translate-x-1/2 rounded-[20px] bg-white/85" />
-          <div
-            className="absolute left-1/2 top-20 h-20 w-28 -translate-x-1/2 bg-white/90"
-            style={{
-              clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)",
-              borderRadius: "20px",
-            }}
-          />
-        </div>
-      </div>
-
-      <div>
-        <p className="text-[30px] font-black leading-[1.05] tracking-[-0.06em] text-[#5a4650]">
-          당신의 결혼식을
-          <br />
-          빛나게 해드립니다
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-4 flex items-center justify-between">
-    <div>
-      <p className="text-[18px] font-black text-[#1d2433]">LUMIÈRE</p>
-      <p className="text-sm font-medium text-[#6f7b91]">스드메 · 웨딩</p>
-    </div>
-    <span className="rounded-full bg-[#dff7e8] px-3 py-1 text-xs font-bold text-[#2f8f57]">
-      사용 가능
-            </span>
+        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div>
+            <p className="text-xs font-black tracking-[0.2em] text-slate-400">TEMPLATE STORE</p>
+            <h1 className="mt-3 text-5xl font-black tracking-[-0.06em] text-slate-950 md:text-7xl">
+              템플릿
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg font-semibold leading-8 text-slate-500">
+              원하는 템플릿을 골라 나만의 웹사이트를 빠르게 시작해 보세요.
+            </p>
           </div>
-</Link>
+          <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-500 shadow-sm">
+            사용 가능 {templates.filter((item) => item.available).length}개
+          </div>
+        </div>
 
-          {templates.slice(1).map((item) => (
-            <div key={item.id} className="group">
-              {item.available ? (
-                <Link to={`/templates/${item.id}`}>
-                  <div
-                    className={`relative h-[320px] overflow-hidden rounded-[20px] bg-gradient-to-br ${item.theme} p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]`}
-                  >
-                    <div className="flex h-full flex-col justify-between rounded-[16px] border border-white/30 p-5">
-                      <div className={`whitespace-pre-line text-sm font-semibold ${item.accent}`}>
-                        {item.sub}
-                      </div>
-                      <div className="whitespace-pre-line text-2xl font-black leading-[1.1] tracking-[-0.05em] text-slate-900">
-                        {item.heading}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ) : (
-                <div
-                  className={`relative h-[320px] overflow-hidden rounded-[20px] bg-gradient-to-br ${item.theme} p-5 opacity-50 shadow-[0_20px_60px_rgba(15,23,42,0.08)]`}
-                >
-                  <div className="flex h-full flex-col justify-between rounded-[16px] border border-white/30 p-5">
-                    <div className={`whitespace-pre-line text-sm font-semibold ${item.accent}`}>
-                      {item.sub}
-                    </div>
-                    <div className="whitespace-pre-line text-2xl font-black leading-[1.1] tracking-[-0.05em] text-slate-900">
-                      {item.heading}
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center rounded-[20px] bg-white/60">
-                    <span className="rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white">
-                      준비 중
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-3 flex items-center gap-2 text-lg tracking-[-0.03em]">
-                <span className="font-semibold text-slate-800">{item.title}</span>
-                <span className="text-slate-500">{item.category}</span>
-                {item.available && (
-                  <span className="ml-auto rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                    사용 가능
-                  </span>
-                )}
-              </div>
-            </div>
+        <div className="mt-12 grid items-start gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          {templates.map((item) => (
+            <TemplateCard key={item.id} item={item} />
           ))}
         </div>
       </div>

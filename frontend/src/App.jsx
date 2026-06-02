@@ -8,6 +8,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import ShoppingTemplateStore from "./pages/ShoppingTemplateStore";
 import WeddingTemplate from "./pages/WeddingTemplate";
+import NeonTemplate from "./pages/NeonTemplate";
 import PuckEditorPage from "./pages/PuckEditorPage";
 import MyPage from "./pages/MyPage";
 import SiteViewPage from "./pages/SiteViewPage";
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/templates/shopping" element={<ShoppingTemplateStore />} />
           <Route path="/templates/wedding" element={<WeddingTemplate />} />
+          <Route path="/templates/neon" element={<NeonTemplate />} />
           <Route path="/ai-editor" element={<PuckEditorPage />} />
           <Route path="/ai-editor/:siteId" element={<PuckEditorPage />} />
           <Route path="/sites/:siteId" element={<SiteViewPage />} />
