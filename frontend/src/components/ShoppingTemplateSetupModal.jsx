@@ -22,14 +22,24 @@ export default function ShoppingTemplateSetupModal({
   onChange,
   onToggleMenu,
   onSubmit,
+  onClose,
   isSubmitting = false,
   errorMessage = "",
 }) {
   if (!open) return null;
 
   return (
-    <aside className="sticky top-6 mt-6 h-fit w-[420px] shrink-0 self-start border-l border-stone-200 bg-white/95 shadow-[-24px_0_60px_rgba(28,25,23,0.08)] backdrop-blur">
-      <div className="flex max-h-[calc(100vh-168px)] flex-col overflow-y-auto px-5 py-6 md:px-6">
+    <aside className="fixed inset-0 z-[65] w-full overflow-hidden bg-white/95 shadow-[-24px_0_60px_rgba(28,25,23,0.08)] backdrop-blur xl:sticky xl:top-6 xl:z-auto xl:mt-6 xl:h-fit xl:w-[420px] xl:shrink-0 xl:self-start xl:border-l xl:border-stone-200">
+      <div className="flex max-h-screen flex-col overflow-y-auto px-5 py-6 md:px-6 xl:max-h-[calc(100vh-168px)]">
+        <div className="mb-4 flex justify-end xl:hidden">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-black text-stone-600 shadow-sm transition hover:border-stone-400 hover:text-stone-950"
+          >
+            닫기
+          </button>
+        </div>
         <div className="rounded-[28px] bg-[linear-gradient(145deg,rgba(247,241,235,0.95),rgba(255,255,255,0.92))] p-5">
           <p className="text-xs font-black tracking-[0.18em] text-stone-400">
             SHOPPING TEMPLATE
@@ -168,6 +178,14 @@ export default function ShoppingTemplateSetupModal({
             className="w-full rounded-2xl bg-stone-950 px-5 py-4 text-sm font-black text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
           >
             {isSubmitting ? "초안 생성 중..." : "적용하고 시작하기"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="w-full rounded-2xl border border-stone-200 bg-white px-5 py-4 text-sm font-black text-stone-600 transition hover:border-stone-400 hover:text-stone-950 disabled:cursor-wait disabled:opacity-70"
+          >
+            취소
           </button>
         </form>
       </div>

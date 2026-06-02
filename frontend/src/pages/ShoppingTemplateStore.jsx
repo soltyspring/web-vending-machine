@@ -769,8 +769,8 @@ export default function ShoppingTemplateStore() {
         ) : null}
 
         {showSetupModal ? (
-        <div className="flex min-h-full min-w-[1760px]">
-          <div className={showSetupModal ? "min-w-[1340px] flex-1" : ""}>
+        <div className="flex min-h-full flex-col xl:min-w-[1760px] xl:flex-row">
+          <div className={showSetupModal ? "xl:min-w-[1340px] xl:flex-1" : ""}>
             <header className="border-b border-white/10 bg-[#101113]" style={generatedHeaderStyle}>
               <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-5 py-3 text-sm font-bold md:px-8">
                 <div className="scrollbar-hide flex items-center gap-5 overflow-x-auto whitespace-nowrap text-white/75">
@@ -1117,6 +1117,7 @@ export default function ShoppingTemplateStore() {
               onChange={handleFormChange}
               onToggleMenu={handleMenuToggle}
               onSubmit={handleSetupSubmit}
+              onClose={() => setShowSetupModal(false)}
               isSubmitting={isSubmitting}
               errorMessage={errorMessage}
             />
