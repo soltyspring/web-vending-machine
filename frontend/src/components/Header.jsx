@@ -18,8 +18,8 @@ export default function Header() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-[#f5f5f6]/90 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-3 px-3 sm:h-20 sm:px-5 md:px-8">
-        <Link to="/" className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="relative mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-3 px-3 sm:h-20 sm:px-5 md:px-8">
+        <Link to="/" className="flex min-w-0 flex-1 items-center gap-3 pr-3">
           <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white">
             W
           </span>
@@ -28,7 +28,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
           {menu.map((item) => (
             <Link
               key={item.label}
