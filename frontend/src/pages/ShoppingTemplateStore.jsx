@@ -11,6 +11,7 @@ import {
   extractErrorMessage,
   parseJsonResponse,
 } from "../lib/api";
+import { readableTextColor, sanitizeShoppingTheme } from "../lib/colorContrast";
 import {
   createShoppingPuckDataFromTemplate,
   shoppingPuckConfig,
@@ -197,15 +198,8 @@ const fixedShellContent = {
   footerMenus: ["추천", "랭킹", "세일", "신상"],
 };
 
-const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(value || "");
-
 const getGeneratedTheme = (theme = {}) => ({
-  primaryColor: isHexColor(theme.primaryColor) ? theme.primaryColor : "#3868ff",
-  secondaryColor: isHexColor(theme.secondaryColor) ? theme.secondaryColor : "#e5e7eb",
-  accentColor: isHexColor(theme.accentColor) ? theme.accentColor : "#ffffff",
-  backgroundColor: isHexColor(theme.backgroundColor) ? theme.backgroundColor : "#111214",
-  surfaceColor: isHexColor(theme.surfaceColor) ? theme.surfaceColor : "#f6f6f7",
-  textColor: isHexColor(theme.textColor) ? theme.textColor : "#111111",
+  ...sanitizeShoppingTheme(theme),
   heroPattern: ["soft-gradient", "editorial-spotlight", "neon-grid", "paper-cut", "mono-luxury", "pop-block"].includes(theme.heroPattern)
     ? theme.heroPattern
     : "soft-gradient",
@@ -222,22 +216,6 @@ const getGeneratedTheme = (theme = {}) => ({
     ? theme.density
     : "balanced",
 });
-
-const hexToRgb = (hex) => {
-  if (!isHexColor(hex)) return null;
-  return {
-    r: parseInt(hex.slice(1, 3), 16),
-    g: parseInt(hex.slice(3, 5), 16),
-    b: parseInt(hex.slice(5, 7), 16),
-  };
-};
-
-const getReadableColor = (hex) => {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return "#111111";
-  const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-  return brightness > 155 ? "#111111" : "#ffffff";
-};
 
 const productImageSizeByScale = {
   small: "h-14 w-14",
@@ -375,7 +353,8 @@ export default function ShoppingTemplateStore() {
         background: `linear-gradient(135deg, ${generatedTheme.backgroundColor}, ${generatedTheme.primaryColor})`,
       }
     : undefined;
-  const readableSurfaceColor = getReadableColor(generatedTheme.surfaceColor);
+  const readableSurfaceColor = readableTextColor(generatedTheme.surfaceColor);
+  const readableImageColor = readableTextColor(generatedTheme.imageColor);
   const generatedSurfaceStyle = useGeneratedTheme
     ? { backgroundColor: generatedTheme.surfaceColor, color: generatedTheme.textColor }
     : undefined;
@@ -655,7 +634,7 @@ export default function ShoppingTemplateStore() {
                     style={
                       useGeneratedTheme
                         ? {
-                            background: `linear-gradient(135deg, ${generatedTheme.secondaryColor}, ${generatedTheme.primaryColor})`,
+                            background: `linear-gradient(135deg, ${generatedTheme.imageColor}, ${generatedTheme.primaryColor})`,
                           }
                         : undefined
                     }
@@ -942,26 +921,40 @@ export default function ShoppingTemplateStore() {
                         style={
                           useGeneratedTheme
                             ? {
-                                background: `linear-gradient(135deg, ${generatedTheme.secondaryColor}, ${generatedTheme.primaryColor})`,
+                                background: `linear-gradient(135deg, ${generatedTheme.imageColor}, ${generatedTheme.primaryColor})`,
                               }
                             : undefined
                         }
                       >
                         <div className="flex h-full items-center justify-center rounded-md bg-white/35">
-                          <div className={`${productImageSize} bg-white/60 ${useGeneratedTheme ? generatedRadius : index % 2 === 0 ? "rounded-2xl" : "rounded-full"}`}></div>
+                          <div
+                            className={`${productImageSize} ${useGeneratedTheme ? generatedRadius : index % 2 === 0 ? "rounded-2xl" : "rounded-full"}`}
+                            style={useGeneratedTheme ? { backgroundColor: readableImageColor, opacity: 0.78 } : undefined}
+                          ></div>
                         </div>
                       </div>
                       <div className="mt-3">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-[11px] font-bold tracking-[0.08em] text-black/40">{item.category}</p>
+                          <p
+                            className={`text-[11px] font-bold tracking-[0.08em] ${useGeneratedTheme ? "opacity-55" : "text-black/40"}`}
+                          >
+                            {item.category}
+                          </p>
                           {item.badge ? (
-                            <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-bold text-white">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${useGeneratedTheme ? "" : "bg-black text-white"}`}
+                              style={
+                                useGeneratedTheme
+                                  ? { backgroundColor: readableSurfaceColor, color: generatedTheme.surfaceColor }
+                                  : undefined
+                              }
+                            >
                               {item.badge}
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-1 text-[15px] font-bold leading-5 text-black">{item.name}</p>
-                        <p className="mt-1 text-base font-black text-black">{item.priceLabel}</p>
+                        <p className={`mt-1 text-[15px] font-bold leading-5 ${useGeneratedTheme ? "" : "text-black"}`}>{item.name}</p>
+                        <p className={`mt-1 text-base font-black ${useGeneratedTheme ? "" : "text-black"}`}>{item.priceLabel}</p>
                       </div>
                     </article>
                   ))}

@@ -1,3 +1,5 @@
+import { readableTextColor, sanitizeShoppingTheme } from "../lib/colorContrast";
+
 const defaultProducts = [
   { category: "상의", name: "에센셜 로고 스웨트", priceLabel: "69,000원", badge: "BEST" },
   { category: "아우터", name: "라이트 후드 점퍼", priceLabel: "119,000원", badge: "NEW" },
@@ -15,10 +17,6 @@ const textLines = (value) =>
   String(value || "")
     .split("\n")
     .filter(Boolean);
-
-const isHexColor = (value) => /^#[0-9a-fA-F]{6}$/.test(value || "");
-
-const safeColor = (value, fallback) => (isHexColor(value) ? value : fallback);
 
 const defaultTopNavigation = ["STORE", "BEAUTY", "SPORTS", "OUTLET", "BOUTIQUE", "KICKS", "KIDS", "USED", "SNAP"].map((label) => ({
   label,
@@ -288,6 +286,7 @@ export const shoppingPuckConfig = {
         },
         backgroundColor: { type: "text" },
         imageColor: { type: "text" },
+        textColor: { type: "text" },
         products: {
           type: "array",
           min: 1,
@@ -312,23 +311,36 @@ export const shoppingPuckConfig = {
         title: "지금 가장 많이 보는 아이템",
         backgroundColor: "#f6f6f7",
         imageColor: "#d8d8d5",
+        textColor: "#111111",
         viewAllText: "View All",
         filters: defaultQuickFilters,
         products: defaultProducts,
       },
-      render: ({ eyebrow, title, viewAllText, filters = defaultQuickFilters, backgroundColor, imageColor, products = [] }) => (
-        <section className="px-5 py-10 text-black md:px-8" style={{ backgroundColor }}>
+      render: ({ eyebrow, title, viewAllText, filters = defaultQuickFilters, backgroundColor, imageColor, textColor, products = [] }) => {
+        const readableProductText = readableTextColor(backgroundColor, textColor);
+        const imageMarkColor = readableTextColor(imageColor);
+
+        return (
+        <section className="px-5 py-10 md:px-8" style={{ backgroundColor, color: readableProductText }}>
           <div className="mx-auto w-full max-w-[1400px]">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs font-black tracking-[0.16em] text-black/45">{eyebrow}</p>
+                <p className="text-xs font-black tracking-[0.16em] opacity-55">{eyebrow}</p>
                 <h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">{title}</h2>
               </div>
-              <span className="text-sm font-bold text-black/50 underline underline-offset-4">{viewAllText}</span>
+              <span className="text-sm font-bold opacity-60 underline underline-offset-4">{viewAllText}</span>
             </div>
             <div className="scrollbar-hide mt-6 flex items-center gap-2 overflow-x-auto pb-2">
               {filters.map((item, index) => (
-                <span key={`${item.label}-${index}`} className={`rounded-full px-4 py-2 text-sm font-bold ${index === 0 ? "bg-black text-white" : "bg-white text-black/60"}`}>
+                <span
+                  key={`${item.label}-${index}`}
+                  className="rounded-full px-4 py-2 text-sm font-bold"
+                  style={
+                    index === 0
+                      ? { backgroundColor: readableProductText, color: backgroundColor }
+                      : { backgroundColor: "rgba(255,255,255,0.92)", color: "#334155" }
+                  }
+                >
                   {item.label}
                 </span>
               ))}
@@ -338,23 +350,34 @@ export const shoppingPuckConfig = {
                 <article key={`${item.name}-${index}`}>
                   <div className="flex aspect-[4/5] items-center justify-center rounded-md p-3 shadow-sm" style={{ backgroundColor: imageColor }}>
                     <div className="flex h-full w-full items-center justify-center rounded-md bg-white/35">
-                      <div className={`${index % 2 ? "rounded-full" : "rounded-2xl"} h-20 w-20 bg-white/70`} />
+                      <div
+                        className={`${index % 2 ? "rounded-full" : "rounded-2xl"} h-20 w-20 opacity-80`}
+                        style={{ backgroundColor: imageMarkColor }}
+                      />
                     </div>
                   </div>
                   <div className="mt-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-[11px] font-bold tracking-[0.08em] text-black/40">{item.category}</p>
-                      {item.badge ? <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-bold text-white">{item.badge}</span> : null}
+                      <p className="text-[11px] font-bold tracking-[0.08em] opacity-55">{item.category}</p>
+                      {item.badge ? (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                          style={{ backgroundColor: readableProductText, color: backgroundColor }}
+                        >
+                          {item.badge}
+                        </span>
+                      ) : null}
                     </div>
-                    <p className="mt-1 text-[15px] font-bold leading-5 text-black">{item.name}</p>
-                    <p className="mt-1 text-base font-black text-black">{item.priceLabel}</p>
+                    <p className="mt-1 text-[15px] font-bold leading-5">{item.name}</p>
+                    <p className="mt-1 text-base font-black">{item.priceLabel}</p>
                   </div>
                 </article>
               ))}
             </div>
           </div>
         </section>
-      ),
+      );
+      },
     },
 
     CommercePromoSection: {
@@ -598,12 +621,14 @@ export function isLegacyShoppingPuckData(data = {}) {
 }
 
 export function createShoppingPuckDataFromTemplate(content = {}) {
-  const theme = content.theme || {};
-  const primaryColor = safeColor(theme.primaryColor, "#d8d8d5");
-  const secondaryColor = safeColor(theme.secondaryColor, "#b8b8b2");
-  const backgroundColor = safeColor(theme.backgroundColor, "#101113");
-  const surfaceColor = safeColor(theme.surfaceColor, "#f6f6f7");
-  const accentColor = safeColor(theme.accentColor, "#ffffff");
+  const theme = sanitizeShoppingTheme(content.theme || {});
+  const primaryColor = theme.primaryColor;
+  const secondaryColor = theme.secondaryColor;
+  const backgroundColor = theme.backgroundColor;
+  const surfaceColor = theme.surfaceColor;
+  const accentColor = theme.accentColor;
+  const textColor = theme.textColor;
+  const imageColor = theme.imageColor;
   const brandName = content.brandName || "MOOD SHOP";
   const products = content.productCards?.length ? content.productCards : defaultProducts;
   const reviews = content.reviewCards?.length ? content.reviewCards : defaultReviews;
@@ -629,7 +654,7 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
           brandName,
           notice: "트렌드와 실용성을 함께 담은 셀렉트숍 메인 화면입니다.",
           backgroundColor,
-          pointColor: safeColor(theme.primaryColor, "#3868ff"),
+          pointColor: primaryColor,
         },
       },
       {
@@ -669,7 +694,8 @@ export function createShoppingPuckDataFromTemplate(content = {}) {
           eyebrow: content.featuredEyebrow || "베스트셀러",
           title: content.featuredTitle || "지금 가장 많이 보는 아이템",
           backgroundColor: surfaceColor,
-          imageColor: secondaryColor,
+          imageColor,
+          textColor,
           products: products.slice(0, 8),
         },
       },

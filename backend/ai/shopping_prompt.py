@@ -59,6 +59,10 @@ AI는 히어로, 기획 타일, 상품 카드, 프로모션 배너, 에디토리
 - theme.backgroundColor는 프로모션/에디토리얼에 쓰일 진한 무드 색
 - theme.surfaceColor는 본문 카드 바탕색
 - theme.textColor는 본문에서 읽기 쉬운 텍스트 색
+- theme.textColor와 theme.surfaceColor는 반드시 명확히 대비되어야 하며, 비슷한 밝기/채도/색상 계열을 함께 쓰지 말 것
+- 어두운 backgroundColor 또는 surfaceColor에는 밝은 textColor를, 밝은 backgroundColor 또는 surfaceColor에는 어두운 textColor를 사용할 것
+- 상품 이미지용으로 쓰일 secondaryColor는 surfaceColor와 충분히 달라야 하며, 흰색 도형이 묻힐 정도로 밝은 색만 반복하지 말 것
+- primaryColor와 secondaryColor도 너무 유사한 계열로 만들지 말고, 데모 화면에서 서로 구분되어야 함
 - theme.heroPattern은 분위기에 맞는 히어로 질감입니다:
   soft-gradient=부드러운 그라데이션, editorial-spotlight=고급 화보 조명, neon-grid=트렌디/테크, paper-cut=따뜻한 수공예, mono-luxury=절제된 럭셔리, pop-block=대담한 블록 컬러
 - theme.shapeStyle은 sharp, soft, pill, organic 중 분위기에 맞게 선택
