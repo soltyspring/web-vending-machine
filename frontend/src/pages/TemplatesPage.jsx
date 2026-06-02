@@ -91,19 +91,19 @@ function ShoppingPreview({ item }) {
 function WeddingPreview({ item }) {
   return (
     <div className="relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br from-[#fff3f7] to-[#f5e6ee] p-4 sm:p-5">
-      <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/60 p-4 sm:p-5">
-        <p className="break-keep text-xs font-black text-[#cc8ea7] sm:text-sm">{item.sub}</p>
-        <div className="flex justify-center">
-          <div className="relative h-32 w-24 sm:h-36 sm:w-28">
-            <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full bg-white/90" />
-            <div className="absolute left-1/2 top-10 h-10 w-14 -translate-x-1/2 rounded-[20px] bg-white/85" />
+      <div className="relative flex h-full flex-col rounded-[20px] border border-white/60 p-4 sm:p-5">
+        <p className="relative z-10 break-keep text-xs font-black text-[#cc8ea7] sm:text-sm">{item.sub}</p>
+        <div className="pointer-events-none absolute inset-x-0 top-12 flex justify-center sm:top-14">
+          <div className="relative h-28 w-24 sm:h-32 sm:w-28">
+            <div className="absolute left-1/2 top-0 h-9 w-9 -translate-x-1/2 rounded-full bg-white/90" />
+            <div className="absolute left-1/2 top-9 h-9 w-14 -translate-x-1/2 rounded-[20px] bg-white/85" />
             <div
-              className="absolute left-1/2 top-20 h-20 w-28 -translate-x-1/2 bg-white/90"
+              className="absolute left-1/2 top-[4.3rem] h-16 w-24 -translate-x-1/2 bg-white/90 sm:h-20 sm:w-28"
               style={{ clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)" }}
             />
           </div>
         </div>
-        <p className="max-w-[13rem] whitespace-pre-line break-keep pl-1 text-[1.45rem] font-black leading-[1.08] text-[#5a4650] sm:text-[1.65rem]">
+        <p className="relative z-10 mt-auto max-w-[13rem] whitespace-pre-line break-keep rounded-2xl bg-[#f8e9ef]/55 px-1 pb-1 pt-2 text-[1.45rem] font-black leading-[1.08] text-[#5a4650] backdrop-blur-[1px] sm:text-[1.65rem]">
           {item.heading}
         </p>
       </div>
