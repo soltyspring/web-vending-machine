@@ -65,6 +65,7 @@ COMMON_MESSAGES = {
     "INVALID_CODE": "인증코드가 올바르지 않습니다.",
     "EXPIRED_CODE": "인증코드가 만료되었습니다.",
     "INVALID_PASSWORD": "새 비밀번호 형식이 올바르지 않습니다.",
+    "SAME_PASSWORD": "현재 비밀번호와 다른 새 비밀번호를 입력해 주세요.",
     "SERVER_ERROR": "잠시 후 다시 시도해 주세요.",
 }
 
@@ -741,13 +742,16 @@ def reset_password(data: ResetPasswordRequest):
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT user_no FROM users WHERE email = %s",
+            "SELECT user_no, password_hash FROM users WHERE email = %s",
             (data.email,),
         )
         user = cursor.fetchone()
 
         if not user:
             raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        if verify_password(data.newPassword, user["password_hash"]):
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["SAME_PASSWORD"])
 
         hashed_password = hash_password(data.newPassword)
 
