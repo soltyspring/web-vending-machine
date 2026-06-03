@@ -5,36 +5,34 @@ import FreeStartButton, {
 
 const templates = [
   {
-    title: "Volt.X",
-    category: "비즈니스 홍보",
-    theme: "from-orange-700 via-red-500 to-black",
-    accent: "text-white/80",
-    heading: "The Center Of The\nFuture Of Brand.",
-    sub: "View More Comfortably\nOn Mobile Screen.",
+    title: "MOOD SHOP",
+    category: "쇼핑몰",
+    theme: "from-rose-100 via-orange-50 to-amber-100",
+    accent: "text-rose-500",
+    heading: "감각적인 쇼핑몰을\n지금 바로 시작하세요",
+    sub: "Shopping Template",
+    preview: "shopping",
+    to: "/templates/shopping",
   },
   {
-    title: "GLOBAL LOGISTICS",
-    category: "비즈니스 홍보",
-    theme: "from-sky-900 via-blue-700 to-orange-500",
-    accent: "text-white/80",
-    heading: "A modern template\nto power up your\nbusiness",
-    sub: "GLOBAL LOGISTICS",
+    title: "LUMIÈRE",
+    category: "스드메 · 웨딩",
+    theme: "from-[#fff3f7] to-[#f5e6ee]",
+    accent: "text-[#cc8ea7]",
+    heading: "당신의 결혼식을\n빛나게 해드립니다",
+    sub: "Wedding Template",
+    preview: "wedding",
+    to: "/templates/wedding",
   },
   {
-    title: "Reservation",
-    category: "예약",
-    theme: "from-stone-100 via-white to-stone-200",
-    accent: "text-stone-500",
-    heading: "감각적인 예약 페이지를\n간단하게 시작해 보세요",
-    sub: "Accommodation",
-  },
-  {
-    title: "ZIGULAB",
-    category: "블로그 · 미디어",
-    theme: "from-lime-300 via-lime-400 to-green-300",
-    accent: "text-stone-700",
-    heading: "지금 바로 시작하는\n콘텐츠 페이지",
-    sub: "ZIGULAB",
+    title: "NEON DROP",
+    category: "런칭 · 쇼케이스",
+    theme: "from-[#05060a] via-[#17111c] to-[#071a1f]",
+    accent: "text-cyan-200",
+    heading: "LAUNCH\nLIKE A FLASH",
+    sub: "Neon Template",
+    preview: "neon",
+    to: "/templates/neon",
   },
 ];
 
@@ -76,7 +74,12 @@ export default function MainPage() {
                   className="flex shrink-0 gap-5 pr-5 md:gap-6 md:pr-6"
                 >
                   {templates.map((item, index) => (
-                    <TemplateCard key={`${item.title}-${setIndex}`} item={item} index={index} />
+                    <TemplateCard
+                      key={`${item.title}-${setIndex}`}
+                      item={item}
+                      index={index}
+                      inert={setIndex === 1}
+                    />
                   ))}
                 </div>
               ))}
