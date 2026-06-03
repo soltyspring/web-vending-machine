@@ -62,7 +62,8 @@ html, body, #root {
 }
 
 .main-template-marquee-track {
-  animation: main-template-marquee 38s linear infinite;
+  animation: main-template-marquee 28s linear infinite;
+  will-change: transform;
 }
 
 @keyframes main-template-marquee {
@@ -75,8 +76,3 @@ html, body, #root {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .main-template-marquee-track {
-    animation: none;
-  }
-}
