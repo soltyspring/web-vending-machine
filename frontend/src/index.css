@@ -60,3 +60,23 @@ html, body, #root {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+.main-template-marquee-track {
+  animation: main-template-marquee 38s linear infinite;
+}
+
+@keyframes main-template-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-template-marquee-track {
+    animation: none;
+  }
+}

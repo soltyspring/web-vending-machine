@@ -65,10 +65,22 @@ export default function MainPage() {
         </div>
 
         <div className="mt-14 overflow-hidden">
-          <div className="flex gap-5 overflow-x-auto pb-4 md:gap-6">
-            {templates.map((item, index) => (
-              <TemplateCard key={item.title} item={item} index={index} />
-            ))}
+          <div className="main-template-marquee group relative -mx-5 overflow-hidden py-2 md:-mx-8">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#f5f5f6] to-transparent md:w-28" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#f5f5f6] to-transparent md:w-28" />
+            <div className="main-template-marquee-track flex w-max pl-5 group-hover:[animation-play-state:paused] md:pl-8">
+              {[0, 1].map((setIndex) => (
+                <div
+                  key={setIndex}
+                  aria-hidden={setIndex === 1}
+                  className="flex shrink-0 gap-5 pr-5 md:gap-6 md:pr-6"
+                >
+                  {templates.map((item, index) => (
+                    <TemplateCard key={`${item.title}-${setIndex}`} item={item} index={index} />
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
