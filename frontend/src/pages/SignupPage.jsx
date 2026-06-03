@@ -4,9 +4,50 @@ import { useAuth } from "../context/useAuth";
 import { createApiUrl, extractErrorMessage, parseJsonResponse } from "../lib/api";
 
 const EMAIL_CODE_EXPIRE_SECONDS = 180;
+const SIGNUP_DRAFT_STORAGE_KEY = "web-vending-machine:signup-draft";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const usernamePattern = /^[A-Za-z0-9_]{2,20}$/;
 const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,20}$/;
+const initialSignupForm = {
+  email: "",
+  username: "",
+  verificationCode: "",
+  password: "",
+  passwordConfirm: "",
+  agreeAll: false,
+  agreeTerms: false,
+  agreePrivacy: false,
+};
+const initialEmailStatus = {
+  sent: false,
+  verified: false,
+  expiresIn: 0,
+};
+const initialUsernameCheck = {
+  status: "idle",
+  value: "",
+};
+
+function getSignupDraft() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const rawDraft = window.sessionStorage.getItem(SIGNUP_DRAFT_STORAGE_KEY);
+    return rawDraft ? JSON.parse(rawDraft) : {};
+  } catch {
+    return {};
+  }
+}
+
+function clearSignupDraft() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(SIGNUP_DRAFT_STORAGE_KEY);
+}
 
 function formatTimer(seconds) {
   const safeSeconds = Math.max(seconds, 0);
@@ -47,25 +88,18 @@ const EyeIcon = ({ open }) => (
 export default function SignupPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [form, setForm] = useState({
-    email: "",
-    username: "",
-    verificationCode: "",
-    password: "",
-    passwordConfirm: "",
-    agreeAll: false,
-    agreeTerms: false,
-    agreePrivacy: false,
-  });
-  const [emailStatus, setEmailStatus] = useState({
-    sent: false,
-    verified: false,
-    expiresIn: 0,
-  });
-  const [usernameCheck, setUsernameCheck] = useState({
-    status: "idle",
-    value: "",
-  });
+  const [form, setForm] = useState(() => ({
+    ...initialSignupForm,
+    ...getSignupDraft().form,
+  }));
+  const [emailStatus, setEmailStatus] = useState(() => ({
+    ...initialEmailStatus,
+    ...getSignupDraft().emailStatus,
+  }));
+  const [usernameCheck, setUsernameCheck] = useState(() => ({
+    ...initialUsernameCheck,
+    ...getSignupDraft().usernameCheck,
+  }));
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
@@ -87,6 +121,17 @@ export default function SignupPage() {
     form.username.length > 0 &&
     usernameCheck.status !== "idle" &&
     usernameCheck.value !== form.username;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.sessionStorage.setItem(
+      SIGNUP_DRAFT_STORAGE_KEY,
+      JSON.stringify({ form, emailStatus, usernameCheck })
+    );
+  }, [emailStatus, form, usernameCheck]);
 
   useEffect(() => {
     if (!emailStatus.sent || emailStatus.verified || emailStatus.expiresIn <= 0) {
@@ -399,6 +444,7 @@ export default function SignupPage() {
       }
 
       login(payload.access_token, true);
+      clearSignupDraft();
       setSuccessMessage(
         payload.message || "회원가입이 완료되었습니다. 자동으로 로그인합니다."
       );
