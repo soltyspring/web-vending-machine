@@ -15,6 +15,7 @@ const AUTH_MESSAGES = {
   invalidCode: "인증코드가 올바르지 않습니다.",
   expiredCode: "인증코드가 만료되었습니다.",
   invalidPassword: "새 비밀번호 형식이 올바르지 않습니다.",
+  sameAsUsername: "새 비밀번호는 아이디와 동일하게 설정할 수 없습니다.",
   tryAgain: "잠시 후 다시 시도해 주세요.",
 };
 
@@ -74,6 +75,7 @@ export default function FindAccountModal({ open, onClose }) {
   const [resetCodeSent, setResetCodeSent] = useState(false);
   const [resetVerified, setResetVerified] = useState(false);
   const [resetToken, setResetToken] = useState("");
+  const [resetUsername, setResetUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -106,6 +108,7 @@ export default function FindAccountModal({ open, onClose }) {
       setResetCodeSent(false);
       setResetVerified(false);
       setResetToken("");
+      setResetUsername("");
       setNewPassword("");
       setNewPasswordConfirm("");
       setShowNewPassword(false);
@@ -171,6 +174,7 @@ export default function FindAccountModal({ open, onClose }) {
     setResetCodeSent(false);
     setResetVerified(false);
     setResetToken("");
+    setResetUsername("");
     setNewPassword("");
     setNewPasswordConfirm("");
     setShowNewPassword(false);
@@ -380,6 +384,7 @@ export default function FindAccountModal({ open, onClose }) {
 
       setResetVerified(true);
       setResetToken(payload.resetToken || "");
+      setResetUsername(payload.username || "");
       setMessage(payload.message || AUTH_MESSAGES.verified);
     } catch (error) {
       setFieldErrors({ resetCode: error.message || AUTH_MESSAGES.invalidCode });
@@ -396,6 +401,14 @@ export default function FindAccountModal({ open, onClose }) {
 
     if (!passwordPattern.test(newPassword)) {
       setFieldErrors({ newPassword: AUTH_MESSAGES.invalidPassword });
+      return;
+    }
+
+    if (
+      resetUsername &&
+      newPassword.trim().toLowerCase() === resetUsername.trim().toLowerCase()
+    ) {
+      setFieldErrors({ newPassword: AUTH_MESSAGES.sameAsUsername });
       return;
     }
 

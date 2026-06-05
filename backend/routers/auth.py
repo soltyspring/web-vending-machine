@@ -66,6 +66,7 @@ COMMON_MESSAGES = {
     "EXPIRED_CODE": "인증코드가 만료되었습니다.",
     "INVALID_PASSWORD": "새 비밀번호 형식이 올바르지 않습니다.",
     "SAME_PASSWORD": "현재 비밀번호와 다른 새 비밀번호를 입력해 주세요.",
+    "SAME_AS_USERNAME": "새 비밀번호는 아이디와 동일하게 설정할 수 없습니다.",
     "SERVER_ERROR": "잠시 후 다시 시도해 주세요.",
 }
 
@@ -681,7 +682,7 @@ def verify_password_reset_code(data: VerifyPasswordResetCodeRequest):
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT user_no FROM users WHERE email = %s",
+            "SELECT user_no, username FROM users WHERE email = %s",
             (data.email,),
         )
         user = cursor.fetchone()
@@ -712,6 +713,7 @@ def verify_password_reset_code(data: VerifyPasswordResetCodeRequest):
         return {
             "message": COMMON_MESSAGES["VERIFIED"],
             "resetToken": reset_token,
+            "username": user["username"],
         }
     except HTTPException:
         raise
@@ -742,13 +744,16 @@ def reset_password(data: ResetPasswordRequest):
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT user_no, password_hash FROM users WHERE email = %s",
+            "SELECT user_no, username, password_hash FROM users WHERE email = %s",
             (data.email,),
         )
         user = cursor.fetchone()
 
         if not user:
             raise HTTPException(status_code=400, detail=COMMON_MESSAGES["NOT_FOUND"])
+
+        if data.newPassword.lower() == user["username"].lower():
+            raise HTTPException(status_code=400, detail=COMMON_MESSAGES["SAME_AS_USERNAME"])
 
         if verify_password(data.newPassword, user["password_hash"]):
             raise HTTPException(status_code=400, detail=COMMON_MESSAGES["SAME_PASSWORD"])
