@@ -14,6 +14,13 @@ import {
   initialNeonPuckData,
   neonPuckConfig,
 } from "./neonPuckConfig";
+import {
+  createPreparedPuckDataFromTemplate,
+  initialBlogPuckData,
+  initialBusinessPuckData,
+  initialReservationPuckData,
+  preparedPuckConfig,
+} from "./preparedPuckConfig";
 
 const registry = {
   shopping: {
@@ -32,6 +39,24 @@ const registry = {
     config: neonPuckConfig,
     initialData: initialNeonPuckData,
     createData: createNeonPuckDataFromTemplate,
+    isLegacyData: () => false,
+  },
+  business: {
+    config: preparedPuckConfig,
+    initialData: initialBusinessPuckData,
+    createData: createPreparedPuckDataFromTemplate,
+    isLegacyData: () => false,
+  },
+  reservation: {
+    config: preparedPuckConfig,
+    initialData: initialReservationPuckData,
+    createData: createPreparedPuckDataFromTemplate,
+    isLegacyData: () => false,
+  },
+  blog: {
+    config: preparedPuckConfig,
+    initialData: initialBlogPuckData,
+    createData: createPreparedPuckDataFromTemplate,
     isLegacyData: () => false,
   },
 };

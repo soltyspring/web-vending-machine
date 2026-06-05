@@ -9,6 +9,9 @@ import TemplatesPage from "./pages/TemplatesPage";
 import ShoppingTemplateStore from "./pages/ShoppingTemplateStore";
 import WeddingTemplate from "./pages/WeddingTemplate";
 import NeonTemplate from "./pages/NeonTemplate";
+import BusinessTemplate from "./pages/BusinessTemplate";
+import ReservationTemplate from "./pages/ReservationTemplate";
+import BlogTemplate from "./pages/BlogTemplate";
 import PuckEditorPage from "./pages/PuckEditorPage";
 import MyPage from "./pages/MyPage";
 import SiteViewPage from "./pages/SiteViewPage";
@@ -28,6 +31,9 @@ export default function App() {
           <Route path="/templates/shopping" element={<ShoppingTemplateStore />} />
           <Route path="/templates/wedding" element={<WeddingTemplate />} />
           <Route path="/templates/neon" element={<NeonTemplate />} />
+          <Route path="/templates/business" element={<BusinessTemplate />} />
+          <Route path="/templates/reservation" element={<ReservationTemplate />} />
+          <Route path="/templates/blog" element={<BlogTemplate />} />
           <Route path="/ai-editor" element={<PuckEditorPage />} />
           <Route path="/ai-editor/:siteId" element={<PuckEditorPage />} />
           <Route path="/sites/:siteId" element={<SiteViewPage />} />

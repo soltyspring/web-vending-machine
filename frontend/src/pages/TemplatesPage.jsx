@@ -32,27 +32,27 @@ const templates = [
     id: "business",
     title: "Volt.X",
     category: "비즈니스 홍보",
-    sub: "Coming Soon",
+    sub: "Business Template",
     heading: "The Center Of The\nFuture Of Brand",
-    available: false,
+    available: true,
     preview: "business",
   },
   {
     id: "reservation",
     title: "Stayline",
     category: "예약 · 숙박",
-    sub: "Coming Soon",
+    sub: "Reservation Template",
     heading: "예약 페이지를\n간단하게 시작하세요",
-    available: false,
+    available: true,
     preview: "reservation",
   },
   {
     id: "blog",
     title: "ZIGULAB",
     category: "블로그 · 미디어",
-    sub: "Coming Soon",
+    sub: "Blog Template",
     heading: "콘텐츠 페이지를\n바로 시작하세요",
-    available: false,
+    available: true,
     preview: "blog",
   },
 ];
@@ -136,7 +136,7 @@ function NeonPreview({ item }) {
   );
 }
 
-function ComingSoonPreview({ item }) {
+function PreparedPreview({ item }) {
   const toneByPreview = {
     business: "from-orange-700 via-red-500 to-black text-white",
     reservation: "from-stone-100 via-white to-stone-200 text-slate-900",
@@ -147,7 +147,7 @@ function ComingSoonPreview({ item }) {
     <div
       className={`relative h-full overflow-hidden rounded-[24px] bg-gradient-to-br ${
         toneByPreview[item.preview] || toneByPreview.business
-      } p-5 opacity-70`}
+      } p-5`}
     >
       <div className="flex h-full flex-col justify-between rounded-[20px] border border-white/35 p-4 sm:p-5">
         <p className="break-keep text-xs font-black opacity-70 sm:text-sm">{item.sub}</p>
@@ -161,9 +161,6 @@ function ComingSoonPreview({ item }) {
           {item.heading}
         </p>
       </div>
-      <div className="absolute inset-0 flex items-center justify-center bg-white/35">
-        <span className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white">준비 중</span>
-      </div>
     </div>
   );
 }
@@ -172,7 +169,7 @@ function TemplatePreview({ item }) {
   if (item.preview === "shopping") return <ShoppingPreview item={item} />;
   if (item.preview === "wedding") return <WeddingPreview item={item} />;
   if (item.preview === "neon") return <NeonPreview item={item} />;
-  return <ComingSoonPreview item={item} />;
+  return <PreparedPreview item={item} />;
 }
 
 function TemplateCard({ item }) {
