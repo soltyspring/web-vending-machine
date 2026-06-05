@@ -1,6 +1,19 @@
-import { Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function TermsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const fromSignup = Boolean(location.state?.fromSignup);
+
+  const handleBackToSignup = () => {
+    if (fromSignup) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/signup");
+  };
+
   return (
     <section className="min-h-screen px-5 pt-28 pb-20 md:px-8">
       <div className="mx-auto w-full max-w-[720px]">
@@ -158,12 +171,13 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-12">
-          <Link
-            to="/signup"
+          <button
+            type="button"
+            onClick={handleBackToSignup}
             className="rounded-2xl bg-slate-950 px-6 py-3.5 text-base font-semibold text-white transition hover:-translate-y-0.5"
           >
             회원가입으로 돌아가기
-          </Link>
+          </button>
         </div>
       </div>
     </section>

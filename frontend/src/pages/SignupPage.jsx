@@ -41,6 +41,14 @@ function getSignupDraft() {
   }
 }
 
+function saveSignupDraft(draft) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.setItem(SIGNUP_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+}
+
 function clearSignupDraft() {
   if (typeof window === "undefined") {
     return;
@@ -127,10 +135,7 @@ export default function SignupPage() {
       return;
     }
 
-    window.sessionStorage.setItem(
-      SIGNUP_DRAFT_STORAGE_KEY,
-      JSON.stringify({ form, emailStatus, usernameCheck })
-    );
+    saveSignupDraft({ form, emailStatus, usernameCheck });
   }, [emailStatus, form, usernameCheck]);
 
   useEffect(() => {
@@ -456,6 +461,10 @@ export default function SignupPage() {
     }
   };
 
+  const handlePolicyLinkClick = () => {
+    saveSignupDraft({ form, emailStatus, usernameCheck });
+  };
+
   const emailHelperText = fieldErrors.email
     ? fieldErrors.email
     : emailStatus.verified
@@ -729,7 +738,12 @@ export default function SignupPage() {
                   onChange={(event) => update("agreeTerms", event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                <Link to="/terms" className="underline hover:text-slate-900">
+                <Link
+                  to="/terms"
+                  state={{ fromSignup: true }}
+                  onClick={handlePolicyLinkClick}
+                  className="underline hover:text-slate-900"
+                >
                   이용약관 동의(필수)
                 </Link>
               </label>
@@ -740,7 +754,12 @@ export default function SignupPage() {
                   onChange={(event) => update("agreePrivacy", event.target.checked)}
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                <Link to="/privacy" className="underline hover:text-slate-900">
+                <Link
+                  to="/privacy"
+                  state={{ fromSignup: true }}
+                  onClick={handlePolicyLinkClick}
+                  className="underline hover:text-slate-900"
+                >
                   개인정보 수집 및 이용 동의(필수)
                 </Link>
               </label>
